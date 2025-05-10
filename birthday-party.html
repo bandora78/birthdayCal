@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תיאום מסיבת יום הולדת - מנהל אירועי ימי הולדת</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">דף הבית</a></li>
+                <li><a href="register.html">רישום גננת</a></li>
+                <li><a href="birthday-party.html">תיאום מסיבת יום הולדת</a></li>
+                <li><a href="events.html">אירועים קרובים</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>תיאום מסיבת יום הולדת</h1>
+        
+        <form id="birthdayPartyForm" class="party-form">
+            <div class="form-group">
+                <label for="childSelect">בחר ילד:</label>
+                <select id="childSelect" name="childSelect" required>
+                    <option value="">בחר ילד</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="partyDate">תאריך המסיבה:</label>
+                <input type="datetime-local" id="partyDate" name="partyDate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="location">מיקום:</label>
+                <select id="location" name="location" required>
+                    <option value="kindergarten">בגן</option>
+                    <option value="other">מיקום אחר</option>
+                </select>
+            </div>
+
+            <div id="otherLocationDiv" class="form-group" style="display: none;">
+                <label for="otherLocation">פרטי המיקום:</label>
+                <input type="text" id="otherLocation" name="otherLocation">
+            </div>
+
+            <div class="form-group">
+                <label for="notes">הערות נוספות:</label>
+                <textarea id="notes" name="notes" rows="4"></textarea>
+            </div>
+
+            <button type="submit">שמור אירוע</button>
+        </form>
+
+        <div id="upcomingParties">
+            <h2>מסיבות קרובות</h2>
+            <div id="partiesList" class="parties-list">
+                <!-- Parties will be added here dynamically -->
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2024 מנהל אירועי ימי הולדת - כל הזכויות שמורות</p>
+    </footer>
+
+    <script src="js/birthday-party.js"></script>
+</body>
+</html> 
