@@ -31,7 +31,7 @@
                 <div class="feature">
                     <h3>ניהול ילדים</h3>
                     <p>הוספת ילדים ותאריכי לידה</p>
-                    <a href="register.html#childrenList" class="feature-button">הוספת ילדים</a>
+                    <button onclick="navigateToChildrenList()" class="feature-button">הוספת ילדים</button>
                 </div>
                 <div class="feature">
                     <h3>תיאום מסיבות</h3>
@@ -52,5 +52,16 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script>
+        function navigateToChildrenList() {
+            const kindergartens = storage.get('kindergartens') || [];
+            if (kindergartens.length > 0) {
+                window.location.href = 'register.html#childrenList';
+            } else {
+                alert('יש להשלים קודם את רישום הגן');
+                window.location.href = 'register.html';
+            }
+        }
+    </script>
 </body>
 </html> 

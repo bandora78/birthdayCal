@@ -35,12 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
         kindergartens.push(kindergartenData);
         storage.set('kindergartens', kindergartens);
 
-        // Show children list section
+        // Show children list section and hide form
         childrenList.style.display = 'block';
         kindergartenForm.style.display = 'none';
 
         // Load existing children
         loadChildren();
+
+        // Update URL to show children list
+        window.location.hash = 'childrenList';
     });
 
     // Handle adding a new child
@@ -94,9 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if kindergarten is already registered
     const kindergartens = storage.get('kindergartens') || [];
-    if (kindergartens.length > 0 && !window.location.hash) {
+    if (kindergartens.length > 0) {
         kindergartenForm.style.display = 'none';
         childrenList.style.display = 'block';
         loadChildren();
+        // Update URL to show children list
+        window.location.hash = 'childrenList';
     }
 }); 
