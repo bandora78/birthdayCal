@@ -4,6 +4,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const addChildForm = document.getElementById('addChildForm');
     const childrenTableBody = document.getElementById('childrenTableBody');
 
+    // Check if we should show children list directly
+    if (window.location.hash === '#childrenList') {
+        const kindergartens = storage.get('kindergartens') || [];
+        if (kindergartens.length > 0) {
+            kindergartenForm.style.display = 'none';
+            childrenList.style.display = 'block';
+            loadChildren();
+        } else {
+            alert('יש להשלים קודם את רישום הגן');
+            window.location.href = 'register.html';
+        }
+    }
+
     // Handle kindergarten registration
     kindergartenForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -81,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if kindergarten is already registered
     const kindergartens = storage.get('kindergartens') || [];
-    if (kindergartens.length > 0) {
+    if (kindergartens.length > 0 && !window.location.hash) {
         kindergartenForm.style.display = 'none';
         childrenList.style.display = 'block';
         loadChildren();
