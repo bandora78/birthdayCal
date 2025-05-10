@@ -330,23 +330,24 @@ th, td {
     border: none;
     cursor: pointer;
     z-index: 1001;
+    margin: 0 auto;
 }
 .hamburger span {
     display: block;
     width: 28px;
-    height: 4px;
+    height: 5px;
     margin: 4px 0;
-    background: #6d4c41;
-    border-radius: 2px;
+    background: #1a2636;
+    border-radius: 3px;
     transition: 0.3s;
 }
 
 @media (max-width: 768px) {
     .hamburger {
         display: flex;
-        position: absolute;
-        right: 1em;
-        top: 1em;
+        position: relative;
+        right: 0;
+        top: 0;
     }
     nav ul {
         position: absolute;
@@ -374,5 +375,22 @@ th, td {
         width: 100%;
         padding: 0.7em 0.5em;
         font-size: 1.1em;
+    }
+}
+
+@media (min-width: 769px) {
+    .hamburger {
+        display: none;
+    }
+    nav ul {
+        display: flex !important;
+        position: static;
+        background: none;
+        box-shadow: none;
+        border-radius: 0;
+        padding: 0;
+        gap: 2em;
+        width: auto;
+        align-items: center;
     }
 } 
