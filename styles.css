@@ -320,13 +320,7 @@ th, td {
 
 /* Hamburger Menu Styles */
 .hamburger {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 44px;
-    height: 44px;
-    background: rgba(255,255,255,0.95);
+    background: #fff;
     border: 1.5px solid #e0e0e0;
     border-radius: 12px;
     box-shadow: 0 2px 8px #ccc;
@@ -335,13 +329,12 @@ th, td {
     position: relative;
 }
 .hamburger span {
-    display: block;
-    width: 30px;
-    height: 5px;
-    margin: 5px 0;
-    background: #111;
-    border-radius: 3px;
-    transition: 0.3s;
+    background: #111 !important;
+    transition: none;
+}
+.hamburger:active, .hamburger:focus, .hamburger:hover {
+    background: #fff;
+    border: 1.5px solid #e0e0e0;
 }
 
 @media (max-width: 768px) {
