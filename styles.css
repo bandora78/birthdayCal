@@ -249,12 +249,71 @@ th, td {
         gap: 1rem;
     }
 
+    main {
+        padding: 0.5em;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
     .features {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .feature {
+        min-height: 180px;
+        padding: 1em;
     }
 
     .registration-form,
     .party-form {
-        padding: 1rem;
+        padding: 1em;
+        border-radius: 10px;
+    }
+
+    .children-list, .events-list, .parties-list {
+        padding: 0.5em;
+        border-radius: 10px;
+    }
+
+    .event-details {
+        padding: 1em;
+        border-radius: 10px;
+    }
+
+    .events-container {
+        padding: 1em;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    header, footer {
+        padding: 0.5em 0;
+        border-radius: 0 0 16px 16px;
+    }
+
+    h1, h2, h3 {
+        font-size: 1.2em;
+    }
+
+    .feature {
+        min-height: 120px;
+        padding: 0.7em;
+    }
+
+    button, .feature-button {
+        font-size: 1em;
+        padding: 0.6em 1.2em;
+    }
+
+    input, select, textarea {
+        font-size: 0.95em;
+        padding: 0.4em;
+    }
+
+    .registration-form,
+    .party-form {
+        padding: 0.5em;
     }
 } 
