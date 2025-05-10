@@ -324,20 +324,22 @@ th, td {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 40px;
-    height: 40px;
-    background: none;
-    border: none;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.95);
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #ccc;
     cursor: pointer;
-    z-index: 1001;
-    margin: 0 auto;
+    z-index: 2000;
+    position: relative;
 }
 .hamburger span {
     display: block;
-    width: 28px;
+    width: 30px;
     height: 5px;
-    margin: 4px 0;
-    background: #1a2636;
+    margin: 5px 0;
+    background: #111;
     border-radius: 3px;
     transition: 0.3s;
 }
