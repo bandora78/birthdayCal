@@ -224,9 +224,21 @@ th, td {
 .feature {
     background-color: white;
     padding: 1.5rem;
-    border-radius: 8px;
+    border-radius: 16px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
+    min-height: 230px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.feature p {
+    margin-bottom: 1.5em;
+}
+
+.feature-button {
+    margin-top: auto;
 }
 
 /* Responsive Design */
