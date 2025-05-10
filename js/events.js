@@ -34,10 +34,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>תאריך: ${formatDate(event.date)}</p>
                 <p>מיקום: ${event.location}</p>
                 <p>מספר אישורי הגעה: ${event.attendance.length}</p>
+                <button class="copy-link-btn" title="העתק קישור לאירוע">📋 העתק קישור</button>
             `;
 
             // Add click event to show details
-            eventCard.addEventListener('click', () => showEventDetails(event));
+            eventCard.addEventListener('click', (e) => {
+                // Prevent event if copy-link-btn was clicked
+                if (e.target.classList.contains('copy-link-btn')) return;
+                showEventDetails(event);
+            });
+
+            // Copy link button logic
+            const copyBtn = eventCard.querySelector('.copy-link-btn');
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const url = `${window.location.origin}${window.location.pathname}?eventId=${event.id}`;
+                navigator.clipboard.writeText(url).then(() => {
+                    copyBtn.textContent = '✔️ הועתק!';
+                    setTimeout(() => { copyBtn.textContent = '📋 העתק קישור'; }, 1500);
+                });
+            });
+
             eventsList.appendChild(eventCard);
         });
     }
@@ -118,4 +135,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     loadEvents();
+
+    // Support direct eventId navigation
+    const params = new URLSearchParams(window.location.search);
+    const eventIdParam = params.get('eventId');
+    if (eventIdParam) {
+        const events = storage.get('events') || [];
+        const event = events.find(ev => String(ev.id) === String(eventIdParam));
+        if (event) {
+            showEventDetails(event);
+            setTimeout(() => {
+                document.getElementById('eventDetails').scrollIntoView({behavior: 'smooth'});
+            }, 200);
+        }
+    }
 }); 
