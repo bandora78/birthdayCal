@@ -9,7 +9,12 @@
 <body>
     <header>
         <nav>
-            <ul>
+            <button class="hamburger" id="hamburgerBtn" aria-label="תפריט" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul id="navList">
                 <li><a href="index.html">דף הבית</a></li>
                 <li><a href="register.html">רישום גננת</a></li>
                 <li><a href="birthday-party.html">תיאום מסיבת יום הולדת</a></li>
@@ -103,5 +108,15 @@
 
     <script src="js/main.js"></script>
     <script src="js/events.js"></script>
+    <script>
+        // Hamburger menu toggle
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const navList = document.getElementById('navList');
+        hamburgerBtn.addEventListener('click', function() {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
+            navList.classList.toggle('open');
+        });
+    </script>
 </body>
 </html> 
