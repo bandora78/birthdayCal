@@ -7,10 +7,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentEventId = null;
 
+    // Get current garden ID
+    const kindergartens = storage.get('kindergartens') || [];
+    const currentGarden = kindergartens[kindergartens.length - 1];
+    if (!currentGarden) {
+        alert('יש להשלים קודם את רישום הגן');
+        window.location.href = 'register.html';
+        return;
+    }
+    const currentGardenId = currentGarden.gardenId;
+
     // Load and display events
     function loadEvents(month = 'all') {
-        const events = storage.get('events') || [];
-        const children = storage.get('children') || [];
+        const events = (storage.get('events') || []).filter(event => event.gardenId === currentGardenId);
+        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
         eventsList.innerHTML = '';
 
         // Filter events by month if specified
@@ -48,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const copyBtn = eventCard.querySelector('.copy-link-btn');
             copyBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const url = `${window.location.origin}${window.location.pathname}?eventId=${event.id}`;
+                const url = `${window.location.origin}${window.location.pathname}?eventId=${event.id}&gardenId=${currentGardenId}`;
                 navigator.clipboard.writeText(url).then(() => {
                     copyBtn.textContent = '✔️ הועתק!';
                     setTimeout(() => { copyBtn.textContent = '📋 העתק קישור'; }, 1500);
@@ -62,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show event details
     function showEventDetails(event) {
         currentEventId = event.id;
-        const children = storage.get('children') || [];
+        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
         const child = children.find(c => c.id === event.childId);
 
         document.getElementById('eventChildName').textContent = child.name;
@@ -139,7 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Support direct eventId navigation
     const params = new URLSearchParams(window.location.search);
     const eventIdParam = params.get('eventId');
-    if (eventIdParam) {
+    const gardenIdParam = params.get('gardenId');
+    
+    if (eventIdParam && gardenIdParam === currentGardenId) {
         const events = storage.get('events') || [];
         const event = events.find(ev => String(ev.id) === String(eventIdParam));
         if (event) {

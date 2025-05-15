@@ -5,9 +5,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const otherLocationDiv = document.getElementById('otherLocationDiv');
     const partiesList = document.getElementById('partiesList');
 
+    // Get current garden ID
+    const kindergartens = storage.get('kindergartens') || [];
+    const currentGarden = kindergartens[kindergartens.length - 1];
+    if (!currentGarden) {
+        alert('יש להשלים קודם את רישום הגן');
+        window.location.href = 'register.html';
+        return;
+    }
+    const currentGardenId = currentGarden.gardenId;
+
     // Load children into select dropdown
     function loadChildren() {
-        const children = storage.get('children') || [];
+        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
         childSelect.innerHTML = '<option value="">בחר ילד</option>';
         
         children.forEach(child => {
@@ -35,7 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
             location: locationSelect.value === 'kindergarten' ? 'בגן' : 
                      document.getElementById('otherLocation').value,
             notes: document.getElementById('notes').value,
-            attendance: []
+            attendance: [],
+            gardenId: currentGardenId
         };
 
         // Save party data
@@ -51,8 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load and display parties
     function loadParties() {
-        const events = storage.get('events') || [];
-        const children = storage.get('children') || [];
+        const events = (storage.get('events') || []).filter(event => event.gardenId === currentGardenId);
+        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
         partiesList.innerHTML = '';
 
         // Sort events by date
