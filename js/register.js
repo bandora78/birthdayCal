@@ -1,8 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     const kindergartenForm = document.getElementById('kindergartenRegistrationForm');
     const childrenList = document.getElementById('childrenList');
+    const gardenLinkSection = document.getElementById('gardenLinkSection');
     const addChildForm = document.getElementById('addChildForm');
     const childrenTableBody = document.getElementById('childrenTableBody');
+    
+    let currentGardenId = null;
+    
+    // Clear hash on load to prevent automatic redirection
+    if (window.location.hash && !window.location.search) {
+        history.replaceState(null, '', window.location.pathname);
+    }
 
     // Check if we should show children list directly
     if (window.location.hash === '#childrenList') {
@@ -10,7 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kindergartens.length > 0) {
             kindergartenForm.style.display = 'none';
             childrenList.style.display = 'block';
-            loadChildren();
+            const lastKindergarten = kindergartens[kindergartens.length - 1];
+            currentGardenId = lastKindergarten.gardenId;
+            
+            // Show garden ID in admin mode
+            document.getElementById('gardenLinkSection').style.display = 'block';
+            document.getElementById('gardenIdDisplay').textContent = currentGardenId;
+            const parentLink = `${window.location.origin}${window.location.pathname}?gardenId=${currentGardenId}`;
+            document.getElementById('parentRegLink').value = parentLink;
+            
+            loadChildren(currentGardenId);
         } else {
             alert('יש להשלים קודם את רישום הגן');
             window.location.href = 'register.html';
@@ -39,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChildren(gardenIdFromUrl);
         // Hide delete buttons for parents
         document.getElementById('childrenTable').style.display = 'none';
+        // Hide garden link section for parents
+        document.getElementById('gardenLinkSection').style.display = 'none';
         // On submit, add child with gardenId
         addChildForm.onsubmit = function(e) {
             e.preventDefault();
@@ -57,6 +76,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Add New Garden button
+    const addNewGardenButton = document.createElement('button');
+    addNewGardenButton.textContent = 'הוסף גן חדש';
+    addNewGardenButton.className = 'feature-button';
+    addNewGardenButton.style.marginTop = '20px';
+    addNewGardenButton.onclick = function() {
+        kindergartenForm.style.display = 'block';
+        childrenList.style.display = 'none';
+        gardenLinkSection.style.display = 'none';
+    };
+    
     // Handle kindergarten registration
     kindergartenForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -76,7 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const kindergartens = storage.get('kindergartens') || [];
         kindergartens.push(kindergartenData);
         storage.set('kindergartens', kindergartens);
-
+        currentGardenId = gardenId;
+        
         // Show parent link section
         document.getElementById('gardenLinkSection').style.display = 'block';
         document.getElementById('gardenIdDisplay').textContent = gardenId;
@@ -91,29 +122,36 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // Hide form, children list (admin adds children after parent reg)
+        // Hide form, show children list for adding children
         kindergartenForm.style.display = 'none';
-        childrenList.style.display = 'none';
+        childrenList.style.display = 'block';
+        
+        // Prepend add new garden button to the children list
+        childrenList.prepend(addNewGardenButton);
     });
 
     // Handle adding a new child (admin mode)
     addChildForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        // Get the latest kindergarten (assume only one for now)
-        const kindergartens = storage.get('kindergartens') || [];
-        const lastKindergarten = kindergartens[kindergartens.length - 1];
-        if (!lastKindergarten) return;
+        if (!currentGardenId) {
+            // Get the latest kindergarten if currentGardenId is not set
+            const kindergartens = storage.get('kindergartens') || [];
+            const lastKindergarten = kindergartens[kindergartens.length - 1];
+            if (!lastKindergarten) return;
+            currentGardenId = lastKindergarten.gardenId;
+        }
+        
         const childData = {
             id: Date.now(),
             name: document.getElementById('childName').value,
             birthDate: document.getElementById('birthDate').value,
-            gardenId: lastKindergarten.gardenId
+            gardenId: currentGardenId
         };
         const children = storage.get('children') || [];
         children.push(childData);
         storage.set('children', children);
         addChildForm.reset();
-        loadChildren(lastKindergarten.gardenId);
+        loadChildren(currentGardenId);
     });
 
     // Load and display children for a specific gardenId
@@ -138,18 +176,45 @@ document.addEventListener('DOMContentLoaded', () => {
         let children = storage.get('children') || [];
         children = children.filter(child => child.id !== childId);
         storage.set('children', children);
-        // Get last kindergarten for admin mode
-        const kindergartens = storage.get('kindergartens') || [];
-        const lastKindergarten = kindergartens[kindergartens.length - 1];
-        if (lastKindergarten) loadChildren(lastKindergarten.gardenId);
+        
+        if (!currentGardenId) {
+            // Get last kindergarten for admin mode
+            const kindergartens = storage.get('kindergartens') || [];
+            const lastKindergarten = kindergartens[kindergartens.length - 1];
+            if (lastKindergarten) currentGardenId = lastKindergarten.gardenId;
+        }
+        
+        loadChildren(currentGardenId);
     };
 
     // Check if kindergarten is already registered (admin mode)
     const kindergartens = storage.get('kindergartens') || [];
-    if (kindergartens.length > 0 && !gardenIdFromUrl) {
+    if (kindergartens.length > 0 && !gardenIdFromUrl && !window.location.hash) {
+        const lastKindergarten = kindergartens[kindergartens.length - 1];
+        currentGardenId = lastKindergarten.gardenId;
+        
+        // Show garden ID and parent link
+        document.getElementById('gardenLinkSection').style.display = 'block';
+        document.getElementById('gardenIdDisplay').textContent = currentGardenId;
+        const parentLink = `${window.location.origin}${window.location.pathname}?gardenId=${currentGardenId}`;
+        document.getElementById('parentRegLink').value = parentLink;
+        document.getElementById('copyParentLinkBtn').onclick = function() {
+            navigator.clipboard.writeText(parentLink).then(() => {
+                document.getElementById('copyParentLinkMsg').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('copyParentLinkMsg').style.display = 'none';
+                }, 1500);
+            });
+        };
+        
+        // Hide form, show children list
         kindergartenForm.style.display = 'none';
         childrenList.style.display = 'block';
-        loadChildren(kindergartens[kindergartens.length - 1].gardenId);
-        window.location.hash = 'childrenList';
+        
+        // Prepend add new garden button
+        childrenList.prepend(addNewGardenButton);
+        
+        // Load children for current garden
+        loadChildren(currentGardenId);
     }
 }); 
