@@ -7,12 +7,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Get current garden ID
     const kindergartens = storage.get('kindergartens') || [];
-    const currentGarden = kindergartens[kindergartens.length - 1];
-    if (!currentGarden) {
+    // Check if we have any gardens at all
+    if (kindergartens.length === 0) {
         alert('יש להשלים קודם את רישום הגן');
         window.location.href = 'register.html';
         return;
     }
+    
+    const currentGarden = kindergartens[kindergartens.length - 1];
+    // Check if the garden has a valid ID
+    if (!currentGarden || !currentGarden.gardenId) {
+        alert('אירעה שגיאה במערכת - נא להירשם מחדש');
+        window.location.href = 'register.html';
+        return;
+    }
+    
     const currentGardenId = currentGarden.gardenId;
 
     // Load children into select dropdown

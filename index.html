@@ -54,6 +54,7 @@
 
     <footer>
         <p>© 2024 מנהל אירועי ימי הולדת - כל הזכויות שמורות</p>
+        <button id="resetDataBtn" style="margin-top: 10px; font-size: 0.8em; color: #666; background: none; border: none; cursor: pointer; text-decoration: underline;">איפוס נתונים</button>
     </footer>
 
     <script src="js/main.js"></script>
@@ -67,6 +68,20 @@
                 window.location.href = 'register.html';
             }
         }
+        
+        // Reset data function
+        document.getElementById('resetDataBtn').addEventListener('click', function() {
+            if (confirm('פעולה זו תמחק את כל הנתונים במערכת. האם להמשיך?')) {
+                localStorage.clear();
+                storage.set('kindergartens', []);
+                storage.set('children', []);
+                storage.set('events', []);
+                storage.set('isInitialized', true);
+                alert('הנתונים אופסו בהצלחה. המערכת תרענן את עצמה.');
+                window.location.reload();
+            }
+        });
+        
         // Hamburger menu toggle
         const hamburgerBtn = document.getElementById('hamburgerBtn');
         const navList = document.getElementById('navList');
