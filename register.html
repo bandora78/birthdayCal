@@ -54,6 +54,15 @@
             <button type="submit">שלח</button>
         </form>
 
+        <div id="gardenLinkSection" class="children-list" style="display: none; text-align: center;">
+            <h2>הגן נוצר בהצלחה!</h2>
+            <p>מזהה הגן שלך: <span id="gardenIdDisplay" style="font-weight:bold;direction:ltr;"></span></p>
+            <p>שלח להורים את הקישור הבא כדי שיוכלו לרשום את ילדיהם לגן:</p>
+            <input id="parentRegLink" type="text" readonly style="width:90%;text-align:left;direction:ltr;" />
+            <button id="copyParentLinkBtn" type="button" style="margin-top:10px;">📋 העתק קישור</button>
+            <div id="copyParentLinkMsg" style="color:green;margin-top:5px;display:none;">הקישור הועתק!</div>
+        </div>
+
         <div id="childrenList" class="children-list" style="display: none;">
             <h2>רשימת ילדים</h2>
             <form id="addChildForm">
