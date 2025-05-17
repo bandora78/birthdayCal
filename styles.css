@@ -238,7 +238,10 @@ th, td {
 }
 
 .feature-button {
-    margin-top: auto;
+    font-size: 1em;
+    padding: 0.6em 1.5em;
+    display: inline-block;
+    margin: 0 auto;
 }
 
 /* Welcome Container Styles */
@@ -475,4 +478,8 @@ th, td {
         width: auto;
         align-items: center;
     }
+}
+
+.new-garden {
+    text-align: center;
 } 

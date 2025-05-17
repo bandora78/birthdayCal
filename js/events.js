@@ -210,4 +210,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 200);
         }
     }
+
+    // Show garden name and copy link
+    const kindergartens = storage.get('kindergartens') || [];
+    const currentGarden = kindergartens.find(k => k.gardenId === currentGardenId);
+    if (currentGarden) {
+        document.getElementById('gardenNameDisplay').textContent = `שם הגן: ${currentGarden.name}`;
+        const parentLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+        const copyBtn = document.getElementById('copyGardenLinkBtn');
+        const copyMsg = document.getElementById('copyGardenLinkMsg');
+        copyBtn.onclick = function() {
+            navigator.clipboard.writeText(parentLink).then(() => {
+                copyMsg.style.display = 'inline';
+                setTimeout(() => { copyMsg.style.display = 'none'; }, 1500);
+            });
+        };
+    }
 }); 
