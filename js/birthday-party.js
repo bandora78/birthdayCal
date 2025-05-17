@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         children.forEach(child => {
             const option = document.createElement('option');
             option.value = child.id;
-            option.textContent = child.name;
+            option.textContent = `${child.name} (מזהה: ${child.childId})`;
             childSelect.appendChild(option);
         });
     }
@@ -90,7 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>מיקום: ${event.location}</p>
                 <p>הערות: ${event.notes || 'אין'}</p>
                 <p>מספר אישורי הגעה: ${event.attendance.length}</p>
+                <button class="copy-link-btn" title="העתק קישור לאירוע">📋 העתק קישור</button>
             `;
+
+            // Add copy link button functionality
+            const copyBtn = partyCard.querySelector('.copy-link-btn');
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const url = `${window.location.origin}/events.html?eventId=${event.id}&gardenId=${currentGardenId}&childId=${child.childId}`;
+                navigator.clipboard.writeText(url).then(() => {
+                    copyBtn.textContent = '✔️ הועתק!';
+                    setTimeout(() => { copyBtn.textContent = '📋 העתק קישור'; }, 1500);
+                });
+            });
+
             partiesList.appendChild(partyCard);
         });
     }

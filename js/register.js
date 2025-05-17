@@ -52,26 +52,46 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('kindergartenRegistrationForm').style.display = 'none';
         document.getElementById('childrenList').style.display = 'block';
         document.querySelector('#childrenList h2').textContent = 'רישום ילד לגן';
+        
+        // Show garden info for parents
+        const kindergartens = storage.get('kindergartens') || [];
+        const garden = kindergartens.find(k => k.gardenId === gardenIdFromUrl);
+        if (garden) {
+            const gardenInfo = document.createElement('div');
+            gardenInfo.className = 'garden-info';
+            gardenInfo.innerHTML = `
+                <h3>פרטי הגן</h3>
+                <p>שם הגן: ${garden.name}</p>
+                <p>שנת לימודים: ${garden.schoolYear}</p>
+                <p>גננת: ${garden.teacherName}</p>
+            `;
+            childrenList.insertBefore(gardenInfo, childrenList.firstChild);
+        }
+        
         // Only allow adding child, not editing list
         loadChildren(gardenIdFromUrl);
         // Hide delete buttons for parents
         document.getElementById('childrenTable').style.display = 'none';
         // Hide garden link section for parents
         document.getElementById('gardenLinkSection').style.display = 'none';
+        
         // On submit, add child with gardenId
         addChildForm.onsubmit = function(e) {
             e.preventDefault();
             const childData = {
                 id: Date.now(),
+                childId: generateChildId(gardenIdFromUrl), // Add sequential child ID
                 name: document.getElementById('childName').value,
                 birthDate: document.getElementById('birthDate').value,
-                gardenId: gardenIdFromUrl
+                gardenId: gardenIdFromUrl,
+                parentName: document.getElementById('parentName').value // Add parent name
             };
             const children = storage.get('children') || [];
             children.push(childData);
             storage.set('children', children);
             addChildForm.reset();
             alert('הילד נרשם בהצלחה!');
+            loadChildren(gardenIdFromUrl);
         };
         return;
     }
@@ -126,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         kindergartenForm.style.display = 'none';
         childrenList.style.display = 'block';
         
-        // Prepend add new garden button to the children list
+        // Prepend add new garden button
         childrenList.prepend(addNewGardenButton);
     });
 
@@ -143,9 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const childData = {
             id: Date.now(),
+            childId: generateChildId(currentGardenId), // Add sequential child ID
             name: document.getElementById('childName').value,
             birthDate: document.getElementById('birthDate').value,
-            gardenId: currentGardenId
+            gardenId: currentGardenId,
+            parentName: document.getElementById('parentName').value // Add parent name
         };
         const children = storage.get('children') || [];
         children.push(childData);
@@ -162,7 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${child.name}</td>
+                <td>${child.childId}</td>
                 <td>${new Date(child.birthDate).toLocaleDateString('he-IL')}</td>
+                <td>${child.parentName || '-'}</td>
                 <td>
                     <button onclick="deleteChild(${child.id})" class="delete-btn">מחק</button>
                 </td>

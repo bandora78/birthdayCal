@@ -9,6 +9,13 @@ const formatDate = (date) => {
     });
 };
 
+// Generate unique child ID for a specific garden
+function generateChildId(gardenId) {
+    const children = storage.get('children') || [];
+    const gardenChildren = children.filter(child => child.gardenId === gardenId);
+    return gardenChildren.length + 1; // Simple sequential number
+}
+
 // Local Storage Management
 const storage = {
     get: (key) => {

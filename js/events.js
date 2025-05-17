@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const copyBtn = eventCard.querySelector('.copy-link-btn');
             copyBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const url = `${window.location.origin}${window.location.pathname}?eventId=${event.id}&gardenId=${currentGardenId}`;
+                const url = `${window.location.origin}${window.location.pathname}?eventId=${event.id}&gardenId=${currentGardenId}&childId=${child.childId}`;
                 navigator.clipboard.writeText(url).then(() => {
                     copyBtn.textContent = '✔️ הועתק!';
                     setTimeout(() => { copyBtn.textContent = '📋 העתק קישור'; }, 1500);
@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const eventIdParam = params.get('eventId');
     const gardenIdParam = params.get('gardenId');
+    const childIdParam = params.get('childId');
     
     if (eventIdParam && gardenIdParam === currentGardenId) {
         const events = storage.get('events') || [];
