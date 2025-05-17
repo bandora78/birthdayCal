@@ -218,12 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('gardenNameDisplay').textContent = `שם הגן: ${currentGarden.name}`;
         const parentLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
         const copyBtn = document.getElementById('copyGardenLinkBtn');
-        const copyMsg = document.getElementById('copyGardenLinkMsg');
         copyBtn.onclick = function() {
-            navigator.clipboard.writeText(parentLink).then(() => {
-                copyMsg.style.display = 'inline';
-                setTimeout(() => { copyMsg.style.display = 'none'; }, 1500);
-            });
+            const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${parentLink}`;
+            const waUrl = `https://wa.me/?text=${msg}`;
+            window.open(waUrl, '_blank');
         };
     }
 }); 
