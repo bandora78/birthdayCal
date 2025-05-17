@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מנהל אירועי ימי הולדת - גן ילדים</title>
+    <title>מנהל אירועי ימי הולדת</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
             </button>
             <ul id="navList">
                 <li><a href="index.html">דף הבית</a></li>
-                <li><a href="register.html">רישום גננת</a></li>
+                <li><a href="register.html">רישום גן חדש</a></li>
                 <li><a href="birthday-party.html">תיאום מסיבת יום הולדת</a></li>
                 <li><a href="events.html">אירועים קרובים</a></li>
             </ul>
@@ -25,63 +25,36 @@
 
     <main>
         <h1>ברוכים הבאים למנהל אירועי ימי הולדת</h1>
-        <div class="welcome-section">
-            <p>באתר זה תוכלו לנהל את כל אירועי ימי ההולדת בגן בצורה נוחה ויעילה</p>
-            <div class="features">
-                <div class="feature">
-                    <h3>רישום גננת</h3>
-                    <p>הרשמה ראשונית של הגן ושנת הלימודים</p>
-                    <a href="register.html" class="feature-button">להרשמה</a>
-                </div>
-                <div class="feature">
-                    <h3>ניהול ילדים</h3>
-                    <p>הוספת ילדים ותאריכי לידה</p>
-                    <button onclick="navigateToChildrenList()" class="feature-button">הוספת ילדים</button>
-                </div>
-                <div class="feature">
-                    <h3>תיאום מסיבות</h3>
-                    <p>קביעת תאריכים ומיקומים למסיבות יום הולדת</p>
-                    <a href="birthday-party.html" class="feature-button">לתיאום מסיבה</a>
-                </div>
-                <div class="feature">
-                    <h3>אישורי הגעה</h3>
-                    <p>ניהול אישורי הגעה לאירועים</p>
-                    <a href="events.html" class="feature-button">לאישורי הגעה</a>
-                </div>
+        
+        <div class="welcome-container">
+            <div class="garden-entry">
+                <h2>כניסה לגן קיים</h2>
+                <form id="gardenEntryForm" class="entry-form">
+                    <div class="form-group">
+                        <label for="gardenId">מזהה הגן:</label>
+                        <input type="text" id="gardenId" name="gardenId" required 
+                               pattern="[A-Za-z0-9]{8}" 
+                               title="מזהה הגן חייב להכיל 8 תווים (אותיות ומספרים)"
+                               style="direction: ltr; text-align: left;">
+                    </div>
+                    <button type="submit">כניסה לגן</button>
+                </form>
+            </div>
+
+            <div class="new-garden">
+                <h2>רישום גן חדש</h2>
+                <p>אין לך גן במערכת? הירשם עכשיו!</p>
+                <a href="register.html" class="feature-button">רישום גן חדש</a>
             </div>
         </div>
     </main>
 
     <footer>
         <p>© 2024 מנהל אירועי ימי הולדת - כל הזכויות שמורות</p>
-        <button id="resetDataBtn" style="margin-top: 10px; font-size: 0.8em; color: #666; background: none; border: none; cursor: pointer; text-decoration: underline;">איפוס נתונים</button>
     </footer>
 
     <script src="js/main.js"></script>
     <script>
-        function navigateToChildrenList() {
-            const kindergartens = storage.get('kindergartens') || [];
-            if (kindergartens.length > 0) {
-                window.location.href = 'register.html#childrenList';
-            } else {
-                alert('יש להשלים קודם את רישום הגן');
-                window.location.href = 'register.html';
-            }
-        }
-        
-        // Reset data function
-        document.getElementById('resetDataBtn').addEventListener('click', function() {
-            if (confirm('פעולה זו תמחק את כל הנתונים במערכת. האם להמשיך?')) {
-                localStorage.clear();
-                storage.set('kindergartens', []);
-                storage.set('children', []);
-                storage.set('events', []);
-                storage.set('isInitialized', true);
-                alert('הנתונים אופסו בהצלחה. המערכת תרענן את עצמה.');
-                window.location.reload();
-            }
-        });
-        
         // Hamburger menu toggle
         const hamburgerBtn = document.getElementById('hamburgerBtn');
         const navList = document.getElementById('navList');
@@ -89,6 +62,23 @@
             const expanded = this.getAttribute('aria-expanded') === 'true';
             this.setAttribute('aria-expanded', !expanded);
             navList.classList.toggle('open');
+        });
+
+        // Handle garden entry form submission
+        document.getElementById('gardenEntryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const gardenId = document.getElementById('gardenId').value;
+            const kindergartens = storage.get('kindergartens') || [];
+            const garden = kindergartens.find(k => k.gardenId === gardenId);
+            
+            if (garden) {
+                // Store current garden ID in session storage
+                sessionStorage.setItem('currentGardenId', gardenId);
+                // Redirect to events page
+                window.location.href = 'events.html';
+            } else {
+                alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
+            }
         });
     </script>
 </body>

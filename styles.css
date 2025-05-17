@@ -241,6 +241,93 @@ th, td {
     margin-top: auto;
 }
 
+/* Welcome Container Styles */
+.welcome-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.garden-entry, .new-garden {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.entry-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Calendar Styles */
+.calendar-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    padding: 0.5rem;
+    border: 1px solid #eee;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background: #f5f5f5;
+}
+
+.calendar-day.has-event {
+    background: #f0f8ff;
+}
+
+.calendar-day .event-icon {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+}
+
+.calendar-day .event-icon.balloon {
+    color: #ff6b6b;
+}
+
+.calendar-day .event-icon.shirt {
+    color: #4dabf7;
+}
+
+.calendar-day.other-month {
+    color: #ccc;
+}
+
+.calendar-day.today {
+    background: #e3f2fd;
+    font-weight: bold;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     nav ul {

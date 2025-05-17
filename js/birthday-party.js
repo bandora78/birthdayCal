@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             partyCard.className = 'event-card';
             partyCard.innerHTML = `
                 <h3>יום הולדת של ${child.name}</h3>
-                <p>תאריך: ${formatDate(event.date)}</p>
+                <p>תאריך: ${new Date(event.date).toLocaleDateString('he-IL')}</p>
                 <p>מיקום: ${event.location}</p>
                 <p>הערות: ${event.notes || 'אין'}</p>
                 <p>מספר אישורי הגעה: ${event.attendance.length}</p>

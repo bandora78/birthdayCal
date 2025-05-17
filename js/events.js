@@ -1,80 +1,124 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const monthFilter = document.getElementById('monthFilter');
-    const eventsList = document.getElementById('eventsList');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const currentMonthElement = document.getElementById('currentMonth');
+    const prevMonthBtn = document.getElementById('prevMonth');
+    const nextMonthBtn = document.getElementById('nextMonth');
     const eventDetails = document.getElementById('eventDetails');
     const attendanceForm = document.getElementById('attendanceForm');
     const attendanceTableBody = document.getElementById('attendanceTableBody');
 
+    let currentDate = new Date();
     let currentEventId = null;
 
-    // Get current garden ID
-    const kindergartens = storage.get('kindergartens') || [];
-    // Check if we have any gardens at all
-    if (kindergartens.length === 0) {
-        alert('יש להשלים קודם את רישום הגן');
-        window.location.href = 'register.html';
+    // Get current garden ID from session storage
+    const currentGardenId = sessionStorage.getItem('currentGardenId');
+    if (!currentGardenId) {
+        alert('יש להיכנס לגן תחילה');
+        window.location.href = 'index.html';
         return;
     }
-    
-    const currentGarden = kindergartens[kindergartens.length - 1];
-    // Check if the garden has a valid ID
-    if (!currentGarden || !currentGarden.gardenId) {
-        alert('אירעה שגיאה במערכת - נא להירשם מחדש');
-        window.location.href = 'register.html';
-        return;
+
+    // Initialize calendar
+    function initCalendar() {
+        renderCalendar();
+        setupEventListeners();
     }
-    
-    const currentGardenId = currentGarden.gardenId;
 
-    // Load and display events
-    function loadEvents(month = 'all') {
-        const events = (storage.get('events') || []).filter(event => event.gardenId === currentGardenId);
-        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-        eventsList.innerHTML = '';
+    // Render calendar for current month
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        // Set current month title
+        currentMonthElement.textContent = new Date(year, month).toLocaleDateString('he-IL', { 
+            year: 'numeric', 
+            month: 'long' 
+        });
 
-        // Filter events by month if specified
-        const filteredEvents = month === 'all' ? events : 
-            events.filter(event => {
+        // Clear calendar grid
+        calendarGrid.innerHTML = '';
+
+        // Add day headers
+        const days = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+        days.forEach(day => {
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'calendar-day-header';
+            dayHeader.textContent = day;
+            calendarGrid.appendChild(dayHeader);
+        });
+
+        // Get first day of month and total days
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const totalDays = lastDay.getDate();
+        const startingDay = firstDay.getDay();
+
+        // Add empty cells for days before first of month
+        for (let i = 0; i < startingDay; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day other-month';
+            calendarGrid.appendChild(emptyDay);
+        }
+
+        // Get events for current month
+        const events = (storage.get('events') || []).filter(event => {
+            const eventDate = new Date(event.date);
+            return event.gardenId === currentGardenId &&
+                   eventDate.getFullYear() === year &&
+                   eventDate.getMonth() === month;
+        });
+
+        // Add days
+        for (let day = 1; day <= totalDays; day++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            dayElement.textContent = day;
+
+            // Check if current day has events
+            const dayEvents = events.filter(event => {
                 const eventDate = new Date(event.date);
-                return eventDate.getMonth() + 1 === parseInt(month);
+                return eventDate.getDate() === day;
             });
 
-        // Sort events by date
-        filteredEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-        filteredEvents.forEach(event => {
-            const child = children.find(c => c.id === event.childId);
-            if (!child) return;
-
-            const eventCard = document.createElement('div');
-            eventCard.className = 'event-card';
-            eventCard.innerHTML = `
-                <h3>יום הולדת של ${child.name}</h3>
-                <p>תאריך: ${formatDate(event.date)}</p>
-                <p>מיקום: ${event.location}</p>
-                <p>מספר אישורי הגעה: ${event.attendance.length}</p>
-                <button class="copy-link-btn" title="העתק קישור לאירוע">📋 העתק קישור</button>
-            `;
-
-            // Add click event to show details
-            eventCard.addEventListener('click', (e) => {
-                // Prevent event if copy-link-btn was clicked
-                if (e.target.classList.contains('copy-link-btn')) return;
-                showEventDetails(event);
-            });
-
-            // Copy link button logic
-            const copyBtn = eventCard.querySelector('.copy-link-btn');
-            copyBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const url = `${window.location.origin}${window.location.pathname}?eventId=${event.id}&gardenId=${currentGardenId}&childId=${child.childId}`;
-                navigator.clipboard.writeText(url).then(() => {
-                    copyBtn.textContent = '✔️ הועתק!';
-                    setTimeout(() => { copyBtn.textContent = '📋 העתק קישור'; }, 1500);
+            if (dayEvents.length > 0) {
+                dayElement.classList.add('has-event');
+                
+                // Add event icons
+                dayEvents.forEach(event => {
+                    const icon = document.createElement('span');
+                    icon.className = 'event-icon';
+                    icon.textContent = event.location === 'בגן' ? '👕' : '🎈';
+                    icon.classList.add(event.location === 'בגן' ? 'shirt' : 'balloon');
+                    dayElement.appendChild(icon);
                 });
-            });
 
-            eventsList.appendChild(eventCard);
+                // Add click event to show details
+                dayElement.addEventListener('click', () => {
+                    showEventDetails(dayEvents[0]);
+                });
+            }
+
+            // Highlight today
+            if (day === new Date().getDate() && 
+                month === new Date().getMonth() && 
+                year === new Date().getFullYear()) {
+                dayElement.classList.add('today');
+            }
+
+            calendarGrid.appendChild(dayElement);
+        }
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+        prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
         });
     }
 
@@ -147,13 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle month filter change
-    monthFilter.addEventListener('change', () => {
-        loadEvents(monthFilter.value);
-    });
-
-    // Initial load
-    loadEvents();
+    // Initialize calendar
+    initCalendar();
 
     // Support direct eventId navigation
     const params = new URLSearchParams(window.location.search);
