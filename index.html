@@ -57,30 +57,39 @@
 
     <script src="js/main.js"></script>
     <script>
-        // Hamburger menu toggle
-        const hamburgerBtn = document.getElementById('hamburgerBtn');
-        const navList = document.getElementById('navList');
-        hamburgerBtn.addEventListener('click', function() {
-            const expanded = this.getAttribute('aria-expanded') === 'true';
-            this.setAttribute('aria-expanded', !expanded);
-            navList.classList.toggle('open');
-        });
-
-        // Handle garden entry form submission
-        document.getElementById('gardenEntryForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const gardenId = document.getElementById('gardenId').value;
-            const kindergartens = storage.get('kindergartens') || [];
-            const garden = kindergartens.find(k => k.gardenId === gardenId);
-            
-            if (garden) {
-                // Store current garden ID in session storage
-                sessionStorage.setItem('currentGardenId', gardenId);
-                // Redirect to events page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is already logged in to a garden
+            const currentGardenId = sessionStorage.getItem('currentGardenId');
+            if (currentGardenId) {
                 window.location.href = 'events.html';
-            } else {
-                alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
+                return;
             }
+            
+            // Hamburger menu toggle
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const navList = document.getElementById('navList');
+            hamburgerBtn.addEventListener('click', function() {
+                const expanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', !expanded);
+                navList.classList.toggle('open');
+            });
+
+            // Handle garden entry form submission
+            document.getElementById('gardenEntryForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const gardenId = document.getElementById('gardenId').value;
+                const kindergartens = storage.get('kindergartens') || [];
+                const garden = kindergartens.find(k => k.gardenId === gardenId);
+                
+                if (garden) {
+                    // Store current garden ID in session storage
+                    sessionStorage.setItem('currentGardenId', gardenId);
+                    // Redirect to events page
+                    window.location.href = 'events.html';
+                } else {
+                    alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
+                }
+            });
         });
     </script>
 </body>

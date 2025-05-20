@@ -84,7 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: document.getElementById('childName').value,
                 birthDate: document.getElementById('birthDate').value,
                 gardenId: gardenIdFromUrl,
-                parentName: document.getElementById('parentName').value // Add parent name
+                parentName: document.getElementById('parentName').value, // Add parent name
+                parentPhone: document.getElementById('parentPhone').value,
+                parentEmail: document.getElementById('parentEmail').value
             };
             const children = storage.get('children') || [];
             children.push(childData);
@@ -167,7 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
             name: document.getElementById('childName').value,
             birthDate: document.getElementById('birthDate').value,
             gardenId: currentGardenId,
-            parentName: document.getElementById('parentName').value // Add parent name
+            parentName: document.getElementById('parentName').value, // Add parent name
+            parentPhone: document.getElementById('parentPhone').value,
+            parentEmail: document.getElementById('parentEmail').value
         };
         const children = storage.get('children') || [];
         children.push(childData);

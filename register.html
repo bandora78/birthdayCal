@@ -24,35 +24,40 @@
     </header>
 
     <main>
-        <h1>רישום גננת</h1>
-        <form id="kindergartenRegistrationForm" class="registration-form">
-            <div class="form-group">
-                <label for="kindergartenName">שם הגן:</label>
-                <input type="text" id="kindergartenName" name="kindergartenName" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="schoolYear">שנת לימודים:</label>
-                <input type="text" id="schoolYear" name="schoolYear" required>
-            </div>
+        <div class="container">
+            <h1>רישום ילדים לגן</h1>
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="parentName">שם ההורה:</label>
+                    <input type="text" id="parentName" required>
+                </div>
+                <div class="form-group">
+                    <label for="parentPhone">טלפון:</label>
+                    <input type="tel" id="parentPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="parentEmail">אימייל:</label>
+                    <input type="email" id="parentEmail" required>
+                </div>
 
-            <div class="form-group">
-                <label for="teacherName">שם הגננת:</label>
-                <input type="text" id="teacherName" name="teacherName" required>
-            </div>
+                <div id="childrenContainer">
+                    <div class="child-entry">
+                        <h3>ילד/ה 1</h3>
+                        <div class="form-group">
+                            <label for="childName1">שם הילד/ה:</label>
+                            <input type="text" id="childName1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="childBirthday1">תאריך לידה:</label>
+                            <input type="date" id="childBirthday1" required>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="email">דוא"ל:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">טלפון:</label>
-                <input type="tel" id="phone" name="phone" required>
-            </div>
-
-            <button type="submit">שלח</button>
-        </form>
+                <button type="button" id="addChildBtn" class="feature-button">+ הוסף ילד/ה</button>
+                <button type="submit" class="feature-button">שלח רישום</button>
+            </form>
+        </div>
 
         <div id="gardenLinkSection" class="children-list" style="display: none; text-align: center;">
             <h2>הגן נוצר בהצלחה!</h2>

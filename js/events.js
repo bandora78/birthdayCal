@@ -191,8 +191,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Initialize calendar
+    // Load and display children list
+    function loadChildrenList() {
+        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
+        const tableBody = document.getElementById('childrenTableBody');
+        tableBody.innerHTML = '';
+
+        children.forEach(child => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${child.name}</td>
+                <td>${child.parentName}</td>
+                <td>${formatDate(child.birthday)}</td>
+                <td>
+                    <button onclick="editChild('${child.id}')" class="edit-btn">✏️ ערוך</button>
+                    <button onclick="removeChild('${child.id}')" class="remove-btn">🗑️ הסר</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Edit child
+    window.editChild = function(childId) {
+        const children = storage.get('children') || [];
+        const child = children.find(c => c.id === childId);
+        if (!child) return;
+
+        const newName = prompt('שם הילד/ה:', child.name);
+        if (!newName) return;
+
+        const newBirthday = prompt('תאריך לידה (YYYY-MM-DD):', child.birthday);
+        if (!newBirthday) return;
+
+        child.name = newName;
+        child.birthday = newBirthday;
+        storage.set('children', children);
+        loadChildrenList();
+    };
+
+    // Remove child
+    window.removeChild = function(childId) {
+        if (!confirm('האם אתה בטוח שברצונך להסיר ילד זה?')) return;
+
+        const children = storage.get('children') || [];
+        const updatedChildren = children.filter(c => c.id !== childId);
+        storage.set('children', updatedChildren);
+        loadChildrenList();
+    };
+
+    // Initialize calendar and load children list
     initCalendar();
+    loadChildrenList();
 
     // Support direct eventId navigation
     const params = new URLSearchParams(window.location.search);
