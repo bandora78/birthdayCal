@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.innerHTML = `
                 <td>${child.name}</td>
                 <td>${child.parentName}</td>
-                <td>${formatDate(child.birthday)}</td>
+                <td>${new Date(child.birthday).toLocaleDateString('he-IL')}</td>
                 <td>
                     <button onclick="editChild('${child.id}')" class="edit-btn">✏️ ערוך</button>
                     <button onclick="removeChild('${child.id}')" class="remove-btn">🗑️ הסר</button>
