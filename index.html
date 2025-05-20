@@ -48,6 +48,10 @@
                     <a href="register.html" class="feature-button">רישום גן חדש</a>
                 </div>
             </div>
+
+            <div class="admin-tools" style="margin-top: 2em; text-align: center;">
+                <button onclick="clearStorage()" class="feature-button" style="background-color: #ff4444;">נקה נתונים</button>
+            </div>
         </div>
     </main>
 
@@ -57,6 +61,16 @@
 
     <script src="js/main.js"></script>
     <script>
+        // Clear storage function
+        function clearStorage() {
+            if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                alert('כל הנתונים נמחקו בהצלחה');
+                window.location.reload();
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Check if user is already logged in to a garden
             const currentGardenId = sessionStorage.getItem('currentGardenId');
@@ -78,6 +92,12 @@
             document.getElementById('gardenEntryForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const gardenId = document.getElementById('gardenId').value;
+                
+                if (!isValidGardenId(gardenId)) {
+                    alert('מזהה הגן חייב להכיל 8 תווים');
+                    return;
+                }
+
                 const kindergartens = storage.get('kindergartens') || [];
                 const garden = kindergartens.find(k => k.gardenId === gardenId);
                 

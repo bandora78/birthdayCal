@@ -16,19 +16,31 @@ function generateChildId(gardenId) {
     return gardenChildren.length + 1; // Simple sequential number
 }
 
-// Local Storage Management
+// Storage helper
 const storage = {
-    get: (key) => {
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : null;
+    get: function(key) {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : null;
     },
-    set: (key, value) => {
+    set: function(key, value) {
         localStorage.setItem(key, JSON.stringify(value));
     },
     remove: (key) => {
         localStorage.removeItem(key);
     }
 };
+
+// Garden ID validation
+function isValidGardenId(gardenId) {
+    return gardenId && gardenId.length === 8;
+}
+
+// Debug helper
+function debugStorage() {
+    console.log('Kindergartens:', storage.get('kindergartens'));
+    console.log('Children:', storage.get('children'));
+    console.log('Current Garden ID:', sessionStorage.getItem('currentGardenId'));
+}
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
