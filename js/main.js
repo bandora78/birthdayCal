@@ -3,8 +3,8 @@
 const supabaseUrl = 'https://ffqgmoqawlfwluddvmfc.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmcWdtb3Fhd2xmd2x1ZGR2bWZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2Mjc1MjAsImV4cCI6MjA2MzIwMzUyMH0.KPGYFxv1JzOhsUXXXaUequhpjiwDcBSzNG5RDVl1A3Q';
 
-// Declare supabase client variable globally but initialize within DOMContentLoaded
-export let supabase;
+// Initialize Supabase client immediately
+export const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // Storage helper
 const storage = {
@@ -54,14 +54,6 @@ function debugStorage() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('main.js DOMContentLoaded fired.'); // Log when main.js DOMContentLoaded starts
     
-    // Initialize Supabase client here to ensure the CDN library is loaded
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Supabase client initialized.', supabase);
-    } else {
-        console.error('Supabase client not available. Ensure the CDN script is loaded correctly.');
-    }
-
     // Check if this is the first visit
     if (!storage.get('isInitialized')) {
         console.log('Storage not initialized, performing initial setup.'); // Log if initialization is needed
