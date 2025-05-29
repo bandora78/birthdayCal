@@ -1,5 +1,11 @@
 // This file handles the children list page logic
 
+// Import necessary modules
+import { supabase } from './main.js';
+// import { storage } from './main.js'; // We will replace storage usage
+import { generateId } from './main.js'; // Assuming generateId is still needed for local use or new children before saving
+import { formatDate } from './main.js'; // Import formatDate
+
 // Global functions for modal management
 window.showModal = function(title, childData = null) {
     const modal = document.getElementById('childFormModal');
@@ -182,4 +188,53 @@ window.deleteChild = function(childId) {
 
     // Reload children list
     window.loadChildren();
+};
+
+// Load and display children from Supabase
+window.loadChildren = async function() { // Made function async
+    const currentGardenId = sessionStorage.getItem('currentGardenId');
+    const tbody = document.getElementById('childrenTableBody');
+
+    if (!currentGardenId || !tbody) {
+        console.warn('Cannot load children: Garden ID or table body not available.');
+        return;
+    }
+
+    // Fetch children from Supabase for the current garden
+    const { data: children, error } = await supabase
+        .from('children')
+        .select('id, name, parent_name, birth_date, garden_id') // Select required fields
+        .eq('garden_id', currentGardenId) // Filter by current garden ID
+        .order('name', { ascending: true }); // Order by name (optional)
+
+    if (error) {
+        console.error('Error fetching children:', error);
+        alert('שגיאה בטעינת רשימת הילדים. אנא נסה שנית.');
+        tbody.innerHTML = '<tr><td colspan="4">שגיאה בטעינת הילדים.</td></tr>'; // Display error message
+        return;
+    }
+
+    // Clear current table rows
+    tbody.innerHTML = '';
+
+    // Populate table with children data from Supabase
+    if (children && children.length > 0) {
+        children.forEach(child => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${child.name}</td>
+                <td>${child.id}</td> <!-- Display Supabase ID -->
+                <td>${formatDate(child.birth_date)}</td> <!-- Use birth_date and imported formatDate -->
+                <td>${child.parent_name}</td> <!-- Use parent_name -->
+                <td>
+                    <button onclick="window.editChild('${child.id}')" class="edit-btn">ערוך</button>
+                    <button onclick="window.deleteChild('${child.id}')" class="delete-btn">מחק</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        // Display a message if no children are found
+        tbody.innerHTML = '<tr><td colspan="4">לא נמצאו ילדים בגן זה.</td></tr>';
+    }
 }; 
