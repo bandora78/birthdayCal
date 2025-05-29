@@ -154,28 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Utility functions
-window.formatDate = function(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('he-IL');
-};
-
-window.isValidDate = function(dateString) {
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dateString)) return false;
-    
-    const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date);
-};
-
-window.generateId = function() {
-    return Math.random().toString(36).substr(2, 9);
-};
-
-export function generateGardenId() {
-    return Math.random().toString(36).substr(2, 8).toUpperCase();
-}
-
 // Global functions for children management
 window.loadChildren = function() {
     const children = storage.get('children') || [];
@@ -240,4 +218,26 @@ window.deleteChild = function(childId) {
 
     // Reload children list
     window.loadChildren();
-}; 
+};
+
+// Utility functions
+export function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('he-IL');
+}
+
+export function isValidDate(dateString) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) return false;
+    
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date);
+}
+
+export function generateId() {
+    return Math.random().toString(36).substr(2, 9);
+}
+
+export function generateGardenId() {
+    return Math.random().toString(36).substr(2, 8).toUpperCase();
+} 
