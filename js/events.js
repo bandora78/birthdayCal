@@ -10,9 +10,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDate = new Date();
     let currentEventId = null;
 
-    // Get current garden ID from session storage
-    const currentGardenId = sessionStorage.getItem('currentGardenId');
-    if (!currentGardenId) {
+    // Get garden ID from URL or session storage
+    const urlParams = new URLSearchParams(window.location.search);
+    const gardenIdFromUrl = urlParams.get('gardenId');
+    let currentGardenId = sessionStorage.getItem('currentGardenId');
+
+    if (gardenIdFromUrl && gardenIdFromUrl !== currentGardenId) {
+        // If gardenId in URL is different from session, update session
+        currentGardenId = gardenIdFromUrl;
+        sessionStorage.setItem('currentGardenId', currentGardenId);
+    } else if (!currentGardenId) {
+        // If no gardenId in URL and not in session, redirect to home
         alert('יש להיכנס לגן תחילה');
         window.location.href = 'index.html';
         return;
@@ -211,11 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Support direct eventId navigation
     const params = new URLSearchParams(window.location.search);
     const eventIdParam = params.get('eventId');
-    const gardenIdParam = params.get('gardenId');
+    // No longer checking gardenIdParam === currentGardenId here
     
-    if (eventIdParam && gardenIdParam === currentGardenId) {
+    if (eventIdParam) {
         const events = storage.get('events') || [];
-        const event = events.find(ev => String(ev.id) === String(eventIdParam));
+        const event = events.find(ev => String(ev.id) === String(eventIdParam) && ev.gardenId === currentGardenId);
         if (event) {
             showEventDetails(event);
             setTimeout(() => {
@@ -226,13 +234,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Show garden name and copy link
     const kindergartens = storage.get('kindergartens') || [];
+    // Use currentGardenId which is now guaranteed to be set from URL or session
     const currentGarden = kindergartens.find(k => k.gardenId === currentGardenId);
     if (currentGarden) {
         document.getElementById('gardenNameDisplay').textContent = `שם הגן: ${currentGarden.name}`;
-        const parentLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+        // Update the link to point to events.html with event and child IDs
+        const parentLinkInput = document.getElementById('parentRegLink');
+        if (parentLinkInput) {
+             parentLinkInput.value = `${window.location.origin}/events.html?gardenId=${currentGardenId}&eventId=`; // Base link
+        }
+
         const copyBtn = document.getElementById('copyGardenLinkBtn');
         copyBtn.onclick = function() {
-            const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${parentLink}`;
+            // This button is meant for garden registration, not event attendance
+            // The copy link for events is within the event card now.
+            // Keeping old functionality for now, but it might be confusing.
+            const registrationLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+            const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${registrationLink}`;
             const waUrl = `https://wa.me/?text=${msg}`;
             window.open(waUrl, '_blank');
         };
