@@ -45,12 +45,21 @@
         </div>
 
         <div id="eventDetails" class="event-details" style="display: none;">
-            <h2>פרטי האירוע</h2>
+            <div class="modal-header">
+                 <h2 id="eventDetailsTitle">פרטי האירוע</h2>
+                 <span class="close-details">&times;</span>
+            </div>
             <div class="event-info">
                 <p><strong>שם הילד:</strong> <span id="eventChildName"></span></p>
+                <p><strong>סוג אירוע:</strong> <span id="eventTypeText"></span></p>
                 <p><strong>תאריך:</strong> <span id="eventDate"></span></p>
                 <p><strong>מיקום:</strong> <span id="eventLocation"></span></p>
                 <p><strong>הערות:</strong> <span id="eventNotes"></span></p>
+            </div>
+
+            <div class="event-actions" style="margin-top: 1em; text-align: center;">
+                <button id="editEventBtn" class="feature-button" style="background: #ff9800; color: white;">ערוך אירוע</button>
+                <button id="deleteEventBtn" class="delete-btn">מחק אירוע</button>
             </div>
 
             <div class="attendance-section">
@@ -87,7 +96,55 @@
                 </form>
             </div>
         </div>
+
     </main>
+
+    <!-- Modal לטופס עריכת אירוע -->
+    <div id="eventFormModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="eventModalTitle">עריכת אירוע</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="eventFormModalContent" class="event-form">
+                 <input type="hidden" id="editEventId">
+                 <div class="form-group">
+                    <label for="editEventType">סוג אירוע:</label>
+                    <select id="editEventType" required>
+                         <option value="birthday">יום הולדת</option>
+                         <option value="other">אחר</option>
+                    </select>
+                </div>
+                <div class="form-group" id="editChildSelectGroup">
+                    <label for="editChildSelect">שם הילד:</label>
+                    <select id="editChildSelect"></select>
+                </div>
+                <div class="form-group">
+                    <label for="editEventDate">תאריך:</label>
+                    <input type="text" id="editEventDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="editLocation">מיקום:</label>
+                    <select id="editLocation" required>
+                        <option value="kindergarten">בגן</option>
+                        <option value="other">אחר</option>
+                    </select>
+                </div>
+                 <div class="form-group" id="editOtherLocationDiv" style="display: none;">
+                    <label for="editOtherLocation">מיקום אחר:</label>
+                    <input type="text" id="editOtherLocation">
+                </div>
+                <div class="form-group">
+                    <label for="editNotes">הערות:</label>
+                    <textarea id="editNotes"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="feature-button">שמור שינויים</button>
+                    <button type="button" class="cancel-button" onclick="closeEventModal()">ביטול</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <footer>
         <p>© 2024 מנהל אירועים בגן - כל הזכויות שמורות</p>
@@ -103,6 +160,18 @@
             this.setAttribute('aria-expanded', !expanded);
             navList.classList.toggle('open');
         });
+
+         // Function to close event details section
+         function closeEventDetails() {
+             const eventDetails = document.getElementById('eventDetails');
+             if (eventDetails) eventDetails.style.display = 'none';
+         }
+
+         // Close event details when clicking the X button
+         const closeDetailsBtn = document.querySelector('.close-details');
+         if (closeDetailsBtn) {
+             closeDetailsBtn.onclick = closeEventDetails;
+         }
     </script>
     <script src="js/main.js"></script>
 </body>

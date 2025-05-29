@@ -597,4 +597,10 @@ th, td {
 .flatpickr-day.selected:hover {
     background: #45a049;
     border-color: #45a049;
+}
+
+/* Modal styles (reused for event form modal) */
+/* Added a specific class for event form adjustments if needed */
+.event-form .form-group {
+    /* Specific styles for event form if necessary */
 } 

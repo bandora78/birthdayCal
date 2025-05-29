@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentDate = new Date();
     let currentEventId = null;
+    let currentEventType = null; // Track current event type
 
     // Get garden ID from URL or session storage
     const urlParams = new URLSearchParams(window.location.search);
@@ -25,6 +26,28 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'index.html';
         return;
     }
+
+    // Event Form Modal elements
+    const eventFormModal = document.getElementById('eventFormModal');
+    const eventFormModalContent = document.getElementById('eventFormModalContent');
+    const eventModalTitle = document.getElementById('eventModalTitle');
+    const editEventIdInput = document.getElementById('editEventId');
+    const editEventTypeSelect = document.getElementById('editEventType');
+    const editChildSelectGroup = document.getElementById('editChildSelectGroup');
+    const editChildSelect = document.getElementById('editChildSelect');
+    const editEventDateInput = document.getElementById('editEventDate');
+    const editLocationSelect = document.getElementById('editLocation');
+    const editOtherLocationDiv = document.getElementById('editOtherLocationDiv');
+    const editOtherLocationInput = document.getElementById('editOtherLocation');
+    const editNotesInput = document.getElementById('editNotes');
+
+    // Initialize Flatpickr for event date picker in modal
+    const eventDatePicker = flatpickr("#editEventDate", {
+        locale: "he",
+        dateFormat: "Y-m-d",
+        disableMobile: "true",
+        theme: "material_blue"
+    });
 
     // Initialize calendar
     function initCalendar() {
@@ -139,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const eventDateElement = document.getElementById('eventDate');
         const eventLocationElement = document.getElementById('eventLocation');
         const eventNotesElement = document.getElementById('eventNotes');
+        const eventTypeTextElement = document.getElementById('eventTypeText'); // Added element for event type
 
         // Reset child name display
         if (eventChildNameElement) eventChildNameElement.textContent = '';
@@ -150,6 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
                  eventChildNameElement.textContent = child.name;
              }
         }
+
+        // Display event type
+        eventTypeTextElement.textContent = event.type === 'birthday' ? 'יום הולדת' : 'אחר';
 
         if (eventDateElement) eventDateElement.textContent = window.formatDate(event.date);
         if (eventLocationElement) eventLocationElement.textContent = event.location;
@@ -213,12 +240,153 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Show Event Modal function
+    function showEventModal(title, eventData = null) {
+        eventModalTitle.textContent = title;
+        eventFormModalContent.reset(); // Reset form before filling
+        editOtherLocationDiv.style.display = 'none'; // Hide other location initially
+
+        if (eventData) {
+            editEventIdInput.value = eventData.id;
+            editEventTypeSelect.value = eventData.type;
+            
+            // Load children for birthday event type
+            const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
+            editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
+            children.forEach(child => {
+                const option = document.createElement('option');
+                option.value = child.id;
+                option.textContent = `${child.name} (מזהה: ${child.id})`;
+                editChildSelect.appendChild(option);
+            });
+
+            if (eventData.type === 'birthday') {
+                editChildSelectGroup.style.display = 'block';
+                editChildSelect.value = eventData.childId || '';
+            } else {
+                editChildSelectGroup.style.display = 'none';
+            }
+
+            eventDatePicker.setDate(eventData.date);
+            editLocationSelect.value = eventData.location === 'בגן' ? 'kindergarten' : 'other';
+            if (eventData.location !== 'בגן') {
+                editOtherLocationDiv.style.display = 'block';
+                editOtherLocationInput.value = eventData.location;
+            }
+            editNotesInput.value = eventData.notes || '';
+        } else {
+             // For new event (though currently only editing is implemented via modal)
+             editEventIdInput.value = '';
+             editChildSelectGroup.style.display = 'none';
+             editChildSelect.innerHTML = '';
+             eventDatePicker.clear();
+        }
+
+        eventFormModal.style.display = 'block';
+    }
+
+    // Close Event Modal function
+    function closeEventModal() {
+        eventFormModal.style.display = 'none';
+    }
+
+    // Close event form modal when clicking the X button
+    const eventModalCloseBtn = eventFormModal.querySelector('.close');
+    if (eventModalCloseBtn) {
+        eventModalCloseBtn.onclick = closeEventModal;
+    }
+
+    // Close event form modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target === eventFormModal) {
+            closeEventModal();
+        }
+    }
+
+    // Handle event type change in modal
+    editEventTypeSelect.addEventListener('change', () => {
+        if (editEventTypeSelect.value === 'birthday') {
+            editChildSelectGroup.style.display = 'block';
+             // Load children if not already loaded
+            if (editChildSelect.options.length <= 1) { // Check if only default option exists
+                const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
+                editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
+                 children.forEach(child => {
+                    const option = document.createElement('option');
+                    option.value = child.id;
+                    option.textContent = `${child.name} (מזהה: ${child.id})`;
+                    editChildSelect.appendChild(option);
+                });
+            }
+        } else {
+            editChildSelectGroup.style.display = 'none';
+        }
+    });
+
+    // Handle location change in modal
+    editLocationSelect.addEventListener('change', () => {
+        editOtherLocationDiv.style.display =
+            editLocationSelect.value === 'other' ? 'block' : 'none';
+    });
+
+
+    // Handle event form modal submission
+    eventFormModalContent.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const eventId = editEventIdInput.value;
+        const eventType = editEventTypeSelect.value;
+        const childId = eventType === 'birthday' ? editChildSelect.value : null;
+        const eventDate = editEventDateInput.value;
+        const location = editLocationSelect.value === 'kindergarten' ? 'בגן' : editOtherLocationInput.value;
+        const notes = editNotesInput.value;
+
+        if (eventType === 'birthday' && !childId) {
+            alert('אנא בחר ילד עבור אירוע יום הולדת');
+            return;
+        }
+
+        const events = storage.get('events') || [];
+        const eventIndex = events.findIndex(ev => String(ev.id) === String(eventId));
+
+        if (eventIndex !== -1) {
+            // Update existing event
+            events[eventIndex] = {
+                ...events[eventIndex],
+                type: eventType,
+                childId: childId,
+                date: eventDate,
+                location: location,
+                notes: notes
+            };
+            storage.set('events', events);
+            alert('האירוע עודכן בהצלחה!');
+            closeEventModal();
+            renderCalendar(); // Re-render calendar to show updated event
+            closeEventDetails(); // Hide details section
+        } else {
+             // This case should ideally not happen with current flow, but good to have
+             console.error('Event not found for update');
+        }
+    });
+
+    // Delete event function
+    function deleteEvent(eventId) {
+        if (confirm('האם אתה בטוח שברצונך למחוק את האירוע?')) {
+            const events = storage.get('events') || [];
+            const updatedEvents = events.filter(event => String(event.id) !== String(eventId));
+            storage.set('events', updatedEvents);
+            alert('האירוע נמחק בהצלחה!');
+            renderCalendar(); // Re-render calendar
+            closeEventDetails(); // Hide details section
+        }
+    }
+
     // Initialize calendar
     initCalendar();
 
     // Support direct eventId navigation
-    const params = new URLSearchParams(window.location.search);
-    const eventIdParam = params.get('eventId');
+    const eventIdParam = urlParams.get('eventId');
     // No longer checking gardenIdParam === currentGardenId here
     
     if (eventIdParam) {
@@ -255,4 +423,31 @@ document.addEventListener('DOMContentLoaded', () => {
             window.open(waUrl, '_blank');
         };
     }
+
+    // Make edit and delete functions globally accessible for event details buttons
+    window.showEventModal = showEventModal;
+    window.deleteEvent = deleteEvent;
+
+    // Add event listeners for edit and delete buttons after showEventDetails is called
+    const editEventBtn = document.getElementById('editEventBtn');
+    const deleteEventBtn = document.getElementById('deleteEventBtn');
+
+    if (editEventBtn) {
+        editEventBtn.addEventListener('click', () => {
+            const events = storage.get('events') || [];
+            const eventToEdit = events.find(ev => String(ev.id) === String(currentEventId));
+            if (eventToEdit) {
+                window.showEventModal('עריכת אירוע', eventToEdit);
+            }
+        });
+    }
+
+    if (deleteEventBtn) {
+        deleteEventBtn.addEventListener('click', () => {
+            if (currentEventId) {
+                window.deleteEvent(currentEventId);
+            }
+        });
+    }
+
 }); 
