@@ -206,6 +206,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.showModal('הוספת ילד חדש');
         });
     }
+
+    console.log('children.js DOMContentLoaded event listeners attached.'); // Log after attaching listeners
 });
 
 // Global functions for children management
