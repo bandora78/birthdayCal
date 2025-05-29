@@ -1,10 +1,19 @@
+// This file handles the events calendar and details logic
+
+// Initialize Flatpickr for event date picker in modal (Moved outside DOMContentLoaded)
+const eventDatePicker = flatpickr("#editEventDate", {
+    locale: "he",
+    dateFormat: "Y-m-d",
+    disableMobile: "true",
+    theme: "material_blue"
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const calendarGrid = document.getElementById('calendarGrid');
     const currentMonthElement = document.getElementById('currentMonth');
     const prevMonthBtn = document.getElementById('prevMonth');
     const nextMonthBtn = document.getElementById('nextMonth');
     const eventDetails = document.getElementById('eventDetails');
-    const attendanceForm = document.getElementById('attendanceForm');
     const attendanceTableBody = document.getElementById('attendanceTableBody');
 
     let currentDate = new Date();
@@ -41,13 +50,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const editOtherLocationInput = document.getElementById('editOtherLocation');
     const editNotesInput = document.getElementById('editNotes');
 
-    // Initialize Flatpickr for event date picker in modal
-    const eventDatePicker = flatpickr("#editEventDate", {
-        locale: "he",
-        dateFormat: "Y-m-d",
-        disableMobile: "true",
-        theme: "material_blue"
-    });
+    // Moved Flatpickr initialization outside DOMContentLoaded
+    // const eventDatePicker = flatpickr("#editEventDate", { /* ... */ });
+
+    // Show Event Modal function (Defined within DOMContentLoaded)
+    function showEventModal(title, eventData = null) {
+        eventModalTitle.textContent = title;
+        eventFormModalContent.reset(); // Reset form before filling
+        editOtherLocationDiv.style.display = 'none'; // Hide other location initially
+
+        if (eventData) {
+            editEventIdInput.value = eventData.id;
+            editEventTypeSelect.value = eventData.type;
+            
+            // Load children for birthday event type
+            const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
+            editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
+            children.forEach(child => {
+                const option = document.createElement('option');
+                option.value = child.id;
+                option.textContent = `${child.name} (מזהה: ${child.id})`;
+                editChildSelect.appendChild(option);
+            });
+
+            if (eventData.type === 'birthday') {
+                editChildSelectGroup.style.display = 'block';
+                editChildSelect.value = eventData.childId || '';
+            } else {
+                editChildSelectGroup.style.display = 'none';
+            }
+
+            // Use the globally defined eventDatePicker instance
+            if (eventDatePicker) {
+                eventDatePicker.setDate(eventData.date);
+            }
+
+            editLocationSelect.value = eventData.location === 'בגן' ? 'kindergarten' : 'other';
+            if (eventData.location !== 'בגן') {
+                editOtherLocationDiv.style.display = 'block';
+                editOtherLocationInput.value = eventData.location;
+            }
+            editNotesInput.value = eventData.notes || '';
+        } else {
+             // For new event (though currently only editing is implemented via modal)
+             editEventIdInput.value = '';
+             editEventTypeSelect.value = 'birthday'; // Default to birthday for new events
+             editChildSelectGroup.style.display = 'block';
+             editChildSelect.innerHTML = ''; // Clear children options
+             // Use the globally defined eventDatePicker instance
+             if (eventDatePicker) {
+                 eventDatePicker.clear();
+             }
+        }
+
+        eventFormModal.style.display = 'block';
+    }
+
+    // Close Event Modal function (Defined within DOMContentLoaded)
+    function closeEventModal() {
+        eventFormModal.style.display = 'none';
+    }
 
     // Initialize calendar
     function initCalendar() {
@@ -155,22 +217,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Show event details
     function showEventDetails(event) {
-        currentEventId = event.id;
-        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-        
+        // currentEventId is now managed via dataset on eventDetails element
+        const eventDetails = document.getElementById('eventDetails');
+        const attendanceTableBody = document.getElementById('attendanceTableBody');
         const eventChildNameElement = document.getElementById('eventChildName');
         const eventDateElement = document.getElementById('eventDate');
         const eventLocationElement = document.getElementById('eventLocation');
         const eventNotesElement = document.getElementById('eventNotes');
-        const eventTypeTextElement = document.getElementById('eventTypeText'); // Added element for event type
+        const eventTypeTextElement = document.getElementById('eventTypeText');
+
+         // Ensure elements exist before accessing
+        if (!eventDetails || !attendanceTableBody || !eventChildNameElement || !eventDateElement || !eventLocationElement || !eventNotesElement || !eventTypeTextElement) {
+            console.error("One or more event details elements not found!");
+            return;
+        }
+
+        // Store the currently viewed event ID using a data attribute on the details section
+        eventDetails.dataset.currentEventId = event.id;
 
         // Reset child name display
-        if (eventChildNameElement) eventChildNameElement.textContent = '';
+        eventChildNameElement.textContent = '';
 
         // Display child name only if it's a birthday party
         if (event.type === 'birthday' && event.childId) {
+             const children = (storage.get('children') || []).filter(child => child.gardenId === storage.getItem('currentGardenId')); // Get gardenId from storage
              const child = children.find(c => c.id === event.childId);
-             if (child && eventChildNameElement) {
+             if (child) {
                  eventChildNameElement.textContent = child.name;
              }
         }
@@ -178,17 +250,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Display event type
         eventTypeTextElement.textContent = event.type === 'birthday' ? 'יום הולדת' : 'אחר';
 
-        if (eventDateElement) eventDateElement.textContent = window.formatDate(event.date);
-        if (eventLocationElement) eventLocationElement.textContent = event.location;
-        if (eventNotesElement) eventNotesElement.textContent = event.notes || 'אין';
+        eventDateElement.textContent = window.formatDate(event.date);
+        eventLocationElement.textContent = event.location;
+        eventNotesElement.textContent = event.notes || 'אין';
 
         // Show attendance section
-        if (eventDetails) eventDetails.style.display = 'block';
+        eventDetails.style.display = 'block';
         loadAttendance(event);
     }
 
     // Load attendance list
     function loadAttendance(event) {
+        const attendanceTableBody = document.getElementById('attendanceTableBody');
+        if (!attendanceTableBody) return; // Ensure element exists
+
         attendanceTableBody.innerHTML = '';
         
         event.attendance.forEach(attendance => {
@@ -213,82 +288,134 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Handle attendance form submission
-    attendanceForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+    const attendanceForm = document.getElementById('attendanceForm');
+    if (attendanceForm) {
+        attendanceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
 
-        if (!currentEventId) return;
+            const eventDetailsElement = document.getElementById('eventDetails');
+            const currentEventId = eventDetailsElement ? eventDetailsElement.dataset.currentEventId : null;
 
-        const attendanceData = {
-            parentName: document.getElementById('parentName').value,
-            childName: document.getElementById('childName').value,
-            status: document.getElementById('attendanceStatus').value
-        };
+            if (!currentEventId) return;
 
-        // Update event attendance
+            const attendanceData = {
+                parentName: document.getElementById('parentName').value,
+                childName: document.getElementById('childName').value,
+                status: document.getElementById('attendanceStatus').value
+            };
+
+            // Update event attendance
+            const events = storage.get('events') || [];
+            const eventIndex = events.findIndex(e => String(e.id) === String(currentEventId));
+            
+            if (eventIndex !== -1) {
+                // Ensure attendance array exists
+                if (!events[eventIndex].attendance) {
+                     events[eventIndex].attendance = [];
+                }
+                events[eventIndex].attendance.push(attendanceData);
+                storage.set('events', events);
+                
+                // Reload attendance list
+                loadAttendance(events[eventIndex]);
+                
+                // Clear form
+                attendanceForm.reset();
+            }
+        });
+    }
+
+
+    // Delete event function
+    function deleteEvent(eventId) {
+        if (confirm('האם אתה בטוח שברצונך למחוק את האירוע?')) {
+            const events = storage.get('events') || [];
+            const updatedEvents = events.filter(event => String(event.id) !== String(eventId));
+            storage.set('events', updatedEvents);
+            alert('האירוע נמחק בהצלחה!');
+            renderCalendar(); // Re-render calendar
+            closeEventDetails(); // Hide details section
+        }
+    }
+
+    // Initialize calendar and event listeners
+    initCalendar();
+
+    // Support direct eventId navigation and show details
+    const eventIdParam = urlParams.get('eventId');
+    if (eventIdParam) {
         const events = storage.get('events') || [];
-        const eventIndex = events.findIndex(e => e.id === currentEventId);
-        
-        if (eventIndex !== -1) {
-            events[eventIndex].attendance.push(attendanceData);
-            storage.set('events', events);
-            
-            // Reload attendance list
-            loadAttendance(events[eventIndex]);
-            
-            // Clear form
-            attendanceForm.reset();
+        const event = events.find(ev => String(ev.id) === String(eventIdParam) && ev.gardenId === currentGardenId);
+        if (event) {
+            showEventDetails(event); // This now shows the event details section with buttons
+            setTimeout(() => {
+                const eventDetailsElement = document.getElementById('eventDetails');
+                 if(eventDetailsElement) eventDetailsElement.scrollIntoView({behavior: 'smooth'});
+            }, 200);
         }
-    });
-
-    // Show Event Modal function
-    function showEventModal(title, eventData = null) {
-        eventModalTitle.textContent = title;
-        eventFormModalContent.reset(); // Reset form before filling
-        editOtherLocationDiv.style.display = 'none'; // Hide other location initially
-
-        if (eventData) {
-            editEventIdInput.value = eventData.id;
-            editEventTypeSelect.value = eventData.type;
-            
-            // Load children for birthday event type
-            const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-            editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
-            children.forEach(child => {
-                const option = document.createElement('option');
-                option.value = child.id;
-                option.textContent = `${child.name} (מזהה: ${child.id})`;
-                editChildSelect.appendChild(option);
-            });
-
-            if (eventData.type === 'birthday') {
-                editChildSelectGroup.style.display = 'block';
-                editChildSelect.value = eventData.childId || '';
-            } else {
-                editChildSelectGroup.style.display = 'none';
-            }
-
-            eventDatePicker.setDate(eventData.date);
-            editLocationSelect.value = eventData.location === 'בגן' ? 'kindergarten' : 'other';
-            if (eventData.location !== 'בגן') {
-                editOtherLocationDiv.style.display = 'block';
-                editOtherLocationInput.value = eventData.location;
-            }
-            editNotesInput.value = eventData.notes || '';
-        } else {
-             // For new event (though currently only editing is implemented via modal)
-             editEventIdInput.value = '';
-             editChildSelectGroup.style.display = 'none';
-             editChildSelect.innerHTML = '';
-             eventDatePicker.clear();
-        }
-
-        eventFormModal.style.display = 'block';
     }
 
-    // Close Event Modal function
-    function closeEventModal() {
-        eventFormModal.style.display = 'none';
+    // Show garden name and copy link
+    const kindergartens = storage.get('kindergartens') || [];
+    const currentGarden = kindergartens.find(k => k.gardenId === currentGardenId);
+    if (currentGarden) {
+        const gardenNameDisplay = document.getElementById('gardenNameDisplay');
+        if(gardenNameDisplay) {
+             gardenNameDisplay.textContent = `שם הגן: ${currentGarden.name}`;
+        }
+
+        // The parentRegLink input should probably be for the children registration page
+        const parentRegLinkInput = document.getElementById('parentRegLink');
+        if(parentRegLinkInput) {
+             parentRegLinkInput.value = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+        }
+
+        const copyBtn = document.getElementById('copyGardenLinkBtn');
+        if (copyBtn) {
+            copyBtn.onclick = function() {
+                const registrationLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+                const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${registrationLink}`;
+                const waUrl = `https://wa.me/?text=${msg}`;
+                window.open(waUrl, '_blank');
+            };
+        }
     }
+
+    // Add event listeners for edit and delete buttons after showEventDetails is called
+    // These event listeners are added to the buttons within the event details section,
+    // which is updated when showEventDetails is called.
+    const editEventBtn = document.getElementById('editEventBtn');
+    const deleteEventBtn = document.getElementById('deleteEventBtn');
+
+    if (editEventBtn) {
+        editEventBtn.addEventListener('click', () => {
+            const eventDetailsElement = document.getElementById('eventDetails');
+            const currentEventIdFromData = eventDetailsElement ? eventDetailsElement.dataset.currentEventId : null;
+            if (currentEventIdFromData) {
+                 const events = storage.get('events') || [];
+                 const eventToEdit = events.find(ev => String(ev.id) === String(currentEventIdFromData));
+                 if (eventToEdit) {
+                    showEventModal('עריכת אירוע', eventToEdit);
+                 }
+            }
+        });
+    }
+
+    if (deleteEventBtn) {
+        deleteEventBtn.addEventListener('click', () => {
+             const eventDetailsElement = document.getElementById('eventDetails');
+             const currentEventIdFromData = eventDetailsElement ? eventDetailsElement.dataset.currentEventId : null;
+            if (currentEventIdFromData) {
+                deleteEvent(currentEventIdFromData);
+            }
+        });
+    }
+
+     // Close event details when clicking the X button
+     const closeDetailsBtn = document.querySelector('.close-details');
+     if (closeDetailsBtn) {
+         closeDetailsBtn.onclick = closeEventDetails;
+     }
 
     // Close event form modal when clicking the X button
     const eventModalCloseBtn = eventFormModal.querySelector('.close');
@@ -328,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editOtherLocationDiv.style.display =
             editLocationSelect.value === 'other' ? 'block' : 'none';
     });
-
 
     // Handle event form modal submission
     eventFormModalContent.addEventListener('submit', (e) => {
@@ -370,84 +496,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Delete event function
-    function deleteEvent(eventId) {
-        if (confirm('האם אתה בטוח שברצונך למחוק את האירוע?')) {
-            const events = storage.get('events') || [];
-            const updatedEvents = events.filter(event => String(event.id) !== String(eventId));
-            storage.set('events', updatedEvents);
-            alert('האירוע נמחק בהצלחה!');
-            renderCalendar(); // Re-render calendar
-            closeEventDetails(); // Hide details section
-        }
-    }
+});
 
-    // Initialize calendar
-    initCalendar();
+// Global function to close event details section (called from deleteEvent)
+function closeEventDetails() {
+    const eventDetails = document.getElementById('eventDetails');
+    if (eventDetails) eventDetails.style.display = 'none';
+}
 
-    // Support direct eventId navigation
-    const eventIdParam = urlParams.get('eventId');
-    // No longer checking gardenIdParam === currentGardenId here
-    
-    if (eventIdParam) {
-        const events = storage.get('events') || [];
-        const event = events.find(ev => String(ev.id) === String(eventIdParam) && ev.gardenId === currentGardenId);
-        if (event) {
-            showEventDetails(event);
-            setTimeout(() => {
-                document.getElementById('eventDetails').scrollIntoView({behavior: 'smooth'});
-            }, 200);
-        }
-    }
-
-    // Show garden name and copy link
-    const kindergartens = storage.get('kindergartens') || [];
-    // Use currentGardenId which is now guaranteed to be set from URL or session
-    const currentGarden = kindergartens.find(k => k.gardenId === currentGardenId);
-    if (currentGarden) {
-        document.getElementById('gardenNameDisplay').textContent = `שם הגן: ${currentGarden.name}`;
-        // Update the link to point to events.html with event and child IDs
-        const parentLinkInput = document.getElementById('parentRegLink');
-        if (parentLinkInput) {
-             parentLinkInput.value = `${window.location.origin}/events.html?gardenId=${currentGardenId}&eventId=`; // Base link
-        }
-
-        const copyBtn = document.getElementById('copyGardenLinkBtn');
-        copyBtn.onclick = function() {
-            // This button is meant for garden registration, not event attendance
-            // The copy link for events is within the event card now.
-            // Keeping old functionality for now, but it might be confusing.
-            const registrationLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
-            const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${registrationLink}`;
-            const waUrl = `https://wa.me/?text=${msg}`;
-            window.open(waUrl, '_blank');
-        };
-    }
-
-    // Make edit and delete functions globally accessible for event details buttons
-    window.showEventModal = showEventModal;
-    window.deleteEvent = deleteEvent;
-
-    // Add event listeners for edit and delete buttons after showEventDetails is called
-    const editEventBtn = document.getElementById('editEventBtn');
-    const deleteEventBtn = document.getElementById('deleteEventBtn');
-
-    if (editEventBtn) {
-        editEventBtn.addEventListener('click', () => {
-            const events = storage.get('events') || [];
-            const eventToEdit = events.find(ev => String(ev.id) === String(currentEventId));
-            if (eventToEdit) {
-                window.showEventModal('עריכת אירוע', eventToEdit);
-            }
-        });
-    }
-
-    if (deleteEventBtn) {
-        deleteEventBtn.addEventListener('click', () => {
-            if (currentEventId) {
-                window.deleteEvent(currentEventId);
-            }
-        });
-    }
-
-}); 
+// Global functions made accessible on window
+window.showEventModal = showEventModal;
+window.closeEventModal = closeEventModal;
+window.deleteEvent = deleteEvent;
+window.showEventDetails = showEventDetails; 
