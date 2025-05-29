@@ -1,3 +1,10 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://ffqgmoqawlfwluddvmfc.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmcWdtb3Fhd2lmd2x1ZGR2bWZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2Mjc1MjAsImV4cCI6MjA2MzIwMzUyMH0.KPGYFxv1JzOhsUXXXaUequhpjiwDcBSzNG5RDVl1A3Q';
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
 // Storage helper
 const storage = {
     get: function(key) {
