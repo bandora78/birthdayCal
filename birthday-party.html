@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>תיאום מסיבת יום הולדת - מנהל אירועי ימי הולדת</title>
+    <title>תיאום אירועים - מנהל אירועים בגן</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,72 +16,112 @@
             </button>
             <ul id="navList">
                 <li><a href="index.html">דף הבית</a></li>
-                <li><a href="register.html">רישום גננת</a></li>
-                <li><a href="birthday-party.html">תיאום מסיבת יום הולדת</a></li>
-                <li><a href="events.html">אירועים קרובים</a></li>
+                <li id="registerGardenLink"><a href="register.html">רישום גן חדש</a></li>
+                <li id="childrenListLink" style="display: none;"><a href="children.html">רשימת הילדים בגן</a></li>
+                <li><a href="events.html">לוח אירועים</a></li>
+                <li><a href="birthday-party.html">תיאום אירועים</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <h1>תיאום מסיבת יום הולדת</h1>
+        <h1>תיאום אירועים</h1>
         
-        <form id="birthdayPartyForm" class="party-form">
-            <div class="form-group">
-                <label for="childSelect">בחר ילד:</label>
-                <select id="childSelect" name="childSelect" required>
-                    <option value="">בחר ילד</option>
-                </select>
+        <div id="gardenInfoAndLink" style="display: none; margin-bottom: 1.5em; text-align: center;">
+            <h2 id="gardenNameDisplay"></h2>
+            <p>שלח להורים את הקישור הבא כדי שיוכלו לרשום את ילדיהם לגן:</p>
+            <input id="parentRegLink" type="text" readonly style="width:90%;max-width: 400px; text-align:left;direction:ltr;" />
+            <button id="copyGardenLinkBtn" class="feature-button" type="button" style="font-size:0.95em; padding:0.4em 1.2em; margin-top: 1em;">📋 העתק ושליחה בוואטסאפ</button>
+            <span id="copyGardenLinkMsg" style="color:green;display:none; margin-top: 0.5em; display: block;">הקישור הועתק!</span>
+        </div>
+
+        <div class="event-form-container">
+            <form id="eventForm" class="event-form">
+                <div class="form-group">
+                    <label for="eventType">סוג האירוע:</label>
+                    <select id="eventType" name="eventType" required>
+                        <option value="birthday">יום הולדת</option>
+                        <option value="other">אירוע אחר</option>
+                    </select>
+                </div>
+
+                <div id="childSelectGroup" class="form-group">
+                    <label for="childSelect">בחר ילד:</label>
+                    <select id="childSelect" name="childSelect">
+                        <option value="">בחר ילד</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDate">תאריך האירוע:</label>
+                    <input type="datetime-local" id="eventDate" name="eventDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">מיקום:</label>
+                    <select id="location" name="location" required>
+                        <option value="kindergarten">בגן</option>
+                        <option value="other">מיקום אחר</option>
+                    </select>
+                </div>
+
+                <div id="otherLocationDiv" class="form-group" style="display: none;">
+                    <label for="otherLocation">פרטי המיקום:</label>
+                    <input type="text" id="otherLocation" name="otherLocation">
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">הערות:</label>
+                    <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="feature-button">שמור אירוע</button>
+            </form>
+        </div>
+
+        <div class="events-lists">
+            <div class="parties-list">
+                <h2>ימי הולדת קרובים</h2>
+                <div id="partiesList" class="events-grid"></div>
             </div>
 
-            <div class="form-group">
-                <label for="partyDate">תאריך המסיבה:</label>
-                <input type="datetime-local" id="partyDate" name="partyDate" required>
-            </div>
-
-            <div class="form-group">
-                <label for="location">מיקום:</label>
-                <select id="location" name="location" required>
-                    <option value="kindergarten">בגן</option>
-                    <option value="other">מיקום אחר</option>
-                </select>
-            </div>
-
-            <div id="otherLocationDiv" class="form-group" style="display: none;">
-                <label for="otherLocation">פרטי המיקום:</label>
-                <input type="text" id="otherLocation" name="otherLocation">
-            </div>
-
-            <div class="form-group">
-                <label for="notes">הערות נוספות:</label>
-                <textarea id="notes" name="notes" rows="4"></textarea>
-            </div>
-
-            <button type="submit">שמור אירוע</button>
-        </form>
-
-        <div id="upcomingParties">
-            <h2>מסיבות קרובות</h2>
-            <div id="partiesList" class="parties-list">
-                <!-- Parties will be added here dynamically -->
+            <div class="upcoming-events">
+                <h2>אירועים קרובים אחרים</h2>
+                <div id="upcomingEventsList" class="events-list"></div>
             </div>
         </div>
     </main>
 
     <footer>
-        <p>© 2024 מנהל אירועי ימי הולדת - כל הזכויות שמורות</p>
+        <p>© 2024 מנהל אירועים בגן - כל הזכויות שמורות</p>
     </footer>
 
     <script src="js/main.js"></script>
     <script src="js/birthday-party.js"></script>
     <script>
-        // Hamburger menu toggle
-        const hamburgerBtn = document.getElementById('hamburgerBtn');
-        const navList = document.getElementById('navList');
-        hamburgerBtn.addEventListener('click', function() {
-            const expanded = this.getAttribute('aria-expanded') === 'true';
-            this.setAttribute('aria-expanded', !expanded);
-            navList.classList.toggle('open');
+        // Hamburger menu toggle handled in main.js
+
+        // Script to toggle child selection based on event type
+        document.addEventListener('DOMContentLoaded', () => {
+            const eventTypeSelect = document.getElementById('eventType');
+            const childSelectGroup = document.getElementById('childSelectGroup');
+            const childSelect = document.getElementById('childSelect');
+
+            function toggleChildSelect() {
+                if (eventTypeSelect.value === 'birthday') {
+                    childSelectGroup.style.display = 'block';
+                    childSelect.setAttribute('required', 'true');
+                } else {
+                    childSelectGroup.style.display = 'none';
+                    childSelect.removeAttribute('required');
+                }
+            }
+
+            // Initial check and event listener
+            toggleChildSelect();
+            eventTypeSelect.addEventListener('change', toggleChildSelect);
+
+             // Location select logic already in birthday-party.js
         });
     </script>
 </body>

@@ -1,10 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Get form elements
     const kindergartenForm = document.getElementById('kindergartenRegistrationForm');
-    const childrenList = document.getElementById('childrenList');
+    const registrationForm = document.getElementById('registrationForm');
+    const childrenContainer = document.getElementById('childrenContainer');
+    const addChildBtn = document.getElementById('addChildBtn');
     const gardenLinkSection = document.getElementById('gardenLinkSection');
+    const childrenList = document.getElementById('childrenList');
     const addChildForm = document.getElementById('addChildForm');
     const childrenTableBody = document.getElementById('childrenTableBody');
     
+    let childCount = 1;
     let currentGardenId = null;
     
     // Clear hash on load to prevent automatic redirection
@@ -47,138 +52,110 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for gardenId in URL (parent registration mode)
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
+
     if (gardenIdFromUrl) {
-        // Hide kindergarten form, show only add child form
-        document.getElementById('kindergartenRegistrationForm').style.display = 'none';
-        document.getElementById('childrenList').style.display = 'block';
-        document.querySelector('#childrenList h2').textContent = 'רישום ילד לגן';
-        
-        // Show garden info for parents
-        const kindergartens = storage.get('kindergartens') || [];
-        const garden = kindergartens.find(k => k.gardenId === gardenIdFromUrl);
-        if (garden) {
-            const gardenInfo = document.createElement('div');
-            gardenInfo.className = 'garden-info';
-            gardenInfo.innerHTML = `
-                <h3>פרטי הגן</h3>
-                <p>שם הגן: ${garden.name}</p>
-                <p>שנת לימודים: ${garden.schoolYear}</p>
-                <p>גננת: ${garden.teacherName}</p>
-            `;
-            childrenList.insertBefore(gardenInfo, childrenList.firstChild);
-        }
-        
-        // Only allow adding child, not editing list
-        loadChildren(gardenIdFromUrl);
-        // Hide delete buttons for parents
-        document.getElementById('childrenTable').style.display = 'none';
-        // Hide garden link section for parents
-        document.getElementById('gardenLinkSection').style.display = 'none';
-        
-        // On submit, add child with gardenId
-        addChildForm.onsubmit = function(e) {
-            e.preventDefault();
-            const childData = {
-                id: Date.now(),
-                childId: generateChildId(gardenIdFromUrl), // Add sequential child ID
-                name: document.getElementById('childName').value,
-                birthDate: document.getElementById('birthDate').value,
-                gardenId: gardenIdFromUrl,
-                parentName: document.getElementById('parentName').value, // Add parent name
-                parentPhone: document.getElementById('parentPhone').value,
-                parentEmail: document.getElementById('parentEmail').value
-            };
-            const children = storage.get('children') || [];
-            children.push(childData);
-            storage.set('children', children);
-            addChildForm.reset();
-            alert('הילד נרשם בהצלחה!');
-            loadChildren(gardenIdFromUrl);
-        };
-        return;
-    }
+        // We're in parent registration mode
+        if (kindergartenForm) kindergartenForm.style.display = 'none';
+        if (registrationForm) registrationForm.style.display = 'block';
+        if (gardenLinkSection) gardenLinkSection.style.display = 'none';
 
-    // Add New Garden button
-    const addNewGardenButton = document.createElement('button');
-    addNewGardenButton.textContent = 'הוסף גן חדש';
-    addNewGardenButton.className = 'feature-button';
-    addNewGardenButton.style.marginTop = '20px';
-    addNewGardenButton.onclick = function() {
-        kindergartenForm.style.display = 'block';
-        childrenList.style.display = 'none';
-        gardenLinkSection.style.display = 'none';
-    };
-    
-    // Handle kindergarten registration
-    kindergartenForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const gardenId = generateGardenId();
-        const kindergartenData = {
-            id: Date.now(),
-            name: document.getElementById('kindergartenName').value,
-            schoolYear: document.getElementById('schoolYear').value,
-            teacherName: document.getElementById('teacherName').value,
-            email: document.getElementById('email').value,
-            phone: document.getElementById('phone').value,
-            gardenId: gardenId
-        };
-
-        // Save kindergarten data
-        const kindergartens = storage.get('kindergartens') || [];
-        kindergartens.push(kindergartenData);
-        storage.set('kindergartens', kindergartens);
-        currentGardenId = gardenId;
-        
-        // Show parent link section
-        document.getElementById('gardenLinkSection').style.display = 'block';
-        document.getElementById('gardenIdDisplay').textContent = gardenId;
-        const parentLink = `${window.location.origin}${window.location.pathname}?gardenId=${gardenId}`;
-        document.getElementById('parentRegLink').value = parentLink;
-        document.getElementById('copyParentLinkBtn').onclick = function() {
-            navigator.clipboard.writeText(parentLink).then(() => {
-                document.getElementById('copyParentLinkMsg').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('copyParentLinkMsg').style.display = 'none';
-                }, 1500);
+        // Add child button functionality
+        if (addChildBtn) {
+            addChildBtn.addEventListener('click', () => {
+                if (childCount >= 5) {
+                    alert('לא ניתן להוסיף יותר מ-5 ילדים ברישום אחד');
+                    return;
+                }
+                childCount++;
+                
+                const childEntry = document.createElement('div');
+                childEntry.className = 'child-entry';
+                childEntry.innerHTML = `
+                    <h3>ילד/ה ${childCount}</h3>
+                    <div class="form-group">
+                        <label for="childName${childCount}">שם הילד/ה:</label>
+                        <input type="text" id="childName${childCount}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="childBirthday${childCount}">תאריך לידה:</label>
+                        <input type="date" id="childBirthday${childCount}" required>
+                    </div>
+                `;
+                if (childrenContainer) childrenContainer.appendChild(childEntry);
             });
-        };
-
-        // Hide form, show children list for adding children
-        kindergartenForm.style.display = 'none';
-        childrenList.style.display = 'block';
-        
-        // Prepend add new garden button
-        childrenList.prepend(addNewGardenButton);
-    });
-
-    // Handle adding a new child (admin mode)
-    addChildForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (!currentGardenId) {
-            // Get the latest kindergarten if currentGardenId is not set
-            const kindergartens = storage.get('kindergartens') || [];
-            const lastKindergarten = kindergartens[kindergartens.length - 1];
-            if (!lastKindergarten) return;
-            currentGardenId = lastKindergarten.gardenId;
         }
-        
-        const childData = {
-            id: Date.now(),
-            childId: generateChildId(currentGardenId), // Add sequential child ID
-            name: document.getElementById('childName').value,
-            birthDate: document.getElementById('birthDate').value,
-            gardenId: currentGardenId,
-            parentName: document.getElementById('parentName').value, // Add parent name
-            parentPhone: document.getElementById('parentPhone').value,
-            parentEmail: document.getElementById('parentEmail').value
-        };
-        const children = storage.get('children') || [];
-        children.push(childData);
-        storage.set('children', children);
-        addChildForm.reset();
-        loadChildren(currentGardenId);
-    });
+
+        // Handle parent registration form submission
+        if (registrationForm) {
+            registrationForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const parentData = {
+                    name: document.getElementById('parentName').value,
+                    phone: document.getElementById('parentPhone').value,
+                    email: document.getElementById('parentEmail').value
+                };
+
+                const children = [];
+                for (let i = 1; i <= childCount; i++) {
+                    children.push({
+                        id: Date.now().toString() + i,
+                        name: document.getElementById(`childName${i}`).value,
+                        birthday: document.getElementById(`childBirthday${i}`).value,
+                        gardenId: gardenIdFromUrl,
+                        parentName: parentData.name,
+                        parentPhone: parentData.phone,
+                        parentEmail: parentData.email
+                    });
+                }
+
+                // Save to storage
+                const childrenList = storage.get('children') || [];
+                children.forEach(child => {
+                    childrenList.push(child);
+                });
+                storage.set('children', childrenList);
+
+                alert('הרישום בוצע בהצלחה!');
+                window.location.href = 'index.html';
+            });
+        }
+    } else {
+        // We're in kindergarten registration mode
+        if (kindergartenForm) {
+            kindergartenForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const gardenId = generateGardenId();
+                const kindergartenData = {
+                    id: Date.now(),
+                    name: document.getElementById('kindergartenName').value,
+                    schoolYear: document.getElementById('schoolYear').value,
+                    teacherName: document.getElementById('teacherName').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    gardenId: gardenId
+                };
+
+                // Save kindergarten data
+                const kindergartens = storage.get('kindergartens') || [];
+                kindergartens.push(kindergartenData);
+                storage.set('kindergartens', kindergartens);
+
+                // Show success message and garden ID
+                if (gardenLinkSection) {
+                    gardenLinkSection.style.display = 'block';
+                    document.getElementById('gardenIdDisplay').textContent = gardenId;
+                    const parentLink = `${window.location.origin}${window.location.pathname}?gardenId=${gardenId}`;
+                    document.getElementById('parentRegLink').value = parentLink;
+                }
+
+                // Store current garden ID and redirect
+                sessionStorage.setItem('currentGardenId', gardenId);
+                window.location.href = 'events.html';
+            });
+        }
+    }
 
     // Load and display children for a specific gardenId
     function loadChildren(gardenId) {
@@ -240,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         childrenList.style.display = 'block';
         
         // Prepend add new garden button
-        childrenList.prepend(addNewGardenButton);
+        childrenList.prepend(addChildBtn);
         
         // Load children for current garden
         loadChildren(currentGardenId);

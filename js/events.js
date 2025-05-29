@@ -126,15 +126,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function showEventDetails(event) {
         currentEventId = event.id;
         const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-        const child = children.find(c => c.id === event.childId);
+        
+        const eventChildNameElement = document.getElementById('eventChildName');
+        const eventDateElement = document.getElementById('eventDate');
+        const eventLocationElement = document.getElementById('eventLocation');
+        const eventNotesElement = document.getElementById('eventNotes');
 
-        document.getElementById('eventChildName').textContent = child.name;
-        document.getElementById('eventDate').textContent = formatDate(event.date);
-        document.getElementById('eventLocation').textContent = event.location;
-        document.getElementById('eventNotes').textContent = event.notes || 'אין';
+        // Reset child name display
+        if (eventChildNameElement) eventChildNameElement.textContent = '';
+
+        // Display child name only if it's a birthday party
+        if (event.type === 'birthday' && event.childId) {
+             const child = children.find(c => c.id === event.childId);
+             if (child && eventChildNameElement) {
+                 eventChildNameElement.textContent = child.name;
+             }
+        }
+
+        if (eventDateElement) eventDateElement.textContent = formatDate(event.date);
+        if (eventLocationElement) eventLocationElement.textContent = event.location;
+        if (eventNotesElement) eventNotesElement.textContent = event.notes || 'אין';
 
         // Show attendance section
-        eventDetails.style.display = 'block';
+        if (eventDetails) eventDetails.style.display = 'block';
         loadAttendance(event);
     }
 
@@ -191,64 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Load and display children list
-    function loadChildrenList() {
-        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-        const tableBody = document.getElementById('childrenTableBody');
-        tableBody.innerHTML = '';
-
-        children.forEach(child => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${child.name}</td>
-                <td>${child.parentName}</td>
-                <td>${new Date(child.birthday).toLocaleDateString('he-IL')}</td>
-                <td>
-                    <button onclick="editChild('${child.id}')" class="edit-btn">✏️ ערוך</button>
-                    <button onclick="removeChild('${child.id}')" class="remove-btn">🗑️ הסר</button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
-
-    // Edit child
-    window.editChild = function(childId) {
-        const children = storage.get('children') || [];
-        const child = children.find(c => c.id === childId);
-        if (!child) return;
-
-        const newName = prompt('שם הילד/ה:', child.name);
-        if (!newName) return;
-
-        const newBirthday = prompt('תאריך לידה (YYYY-MM-DD):', child.birthday);
-        if (!newBirthday) return;
-
-        child.name = newName;
-        child.birthday = newBirthday;
-        storage.set('children', children);
-        loadChildrenList();
-    };
-
-    // Remove child
-    window.removeChild = function(childId) {
-        if (!confirm('האם אתה בטוח שברצונך להסיר ילד זה?')) return;
-
-        const children = storage.get('children') || [];
-        const updatedChildren = children.filter(c => c.id !== childId);
-        storage.set('children', updatedChildren);
-        loadChildrenList();
-    };
-
-    // Initialize calendar and load children list
+    // Initialize calendar
     initCalendar();
-    loadChildrenList();
 
     // Support direct eventId navigation
     const params = new URLSearchParams(window.location.search);
     const eventIdParam = params.get('eventId');
     const gardenIdParam = params.get('gardenId');
-    const childIdParam = params.get('childId');
     
     if (eventIdParam && gardenIdParam === currentGardenId) {
         const events = storage.get('events') || [];

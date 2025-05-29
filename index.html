@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מנהל אירועי ימי הולדת</title>
+    <title>מנהל אירועים בגן</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,18 +16,27 @@
             </button>
             <ul id="navList">
                 <li><a href="index.html">דף הבית</a></li>
-                <li><a href="register.html">רישום גן חדש</a></li>
-                <li><a href="birthday-party.html">תיאום מסיבת יום הולדת</a></li>
-                <li><a href="events.html">אירועים קרובים</a></li>
+                <li id="registerGardenLink"><a href="register.html">רישום גן חדש</a></li>
+                <li id="childrenListLink" style="display: none;"><a href="children.html">רשימת הילדים בגן</a></li>
+                <li><a href="events.html">לוח אירועים</a></li>
+                <li><a href="birthday-party.html">תיאום אירועים</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <h1>ברוכים הבאים למנהל אירועי ימי הולדת</h1>
+        <h1>ברוכים הבאים למנהל אירועים בגן</h1>
         
+        <div id="gardenInfoAndLink" style="display: none; margin-bottom: 1.5em; text-align: center;">
+            <h2 id="homeGardenName" style="margin-bottom: 0.5em;"></h2>
+            <p>שלח להורים את הקישור הבא כדי שיוכלו לרשום את ילדיהם לגן:</p>
+            <input id="homeParentRegLink" type="text" readonly style="width:90%;max-width: 400px; text-align:left;direction:ltr;" />
+            <button id="homeCopyGardenLinkBtn" class="feature-button" type="button" style="font-size:0.95em; padding:0.4em 1.2em; margin-top: 1em;">📋 העתק ושליחה בוואטסאפ</button>
+            <span id="homeCopyGardenLinkMsg" style="color:green;display:none; margin-top: 0.5em; display: block;">הקישור הועתק!</span>
+        </div>
+
         <div class="welcome-container">
-            <div class="garden-entry">
+            <div class="garden-entry" id="gardenEntrySection">
                 <h2>כניסה לגן קיים</h2>
                 <form id="gardenEntryForm" class="entry-form">
                     <div class="form-group">
@@ -41,12 +50,16 @@
                 </form>
             </div>
 
-            <div class="new-garden">
+            <div class="new-garden" id="newGardenSection">
                 <h2>רישום גן חדש</h2>
                 <p>אין לך גן במערכת? הירשם עכשיו!</p>
                 <div style="margin-top: 1.5em;">
                     <a href="register.html" class="feature-button">רישום גן חדש</a>
                 </div>
+            </div>
+
+            <div id="gardenExitSection" style="display: none; text-align: center; margin-top: 2em;">
+                <button onclick="exitGarden()" class="feature-button" style="background-color: #ff4444;">יציאה מהגן</button>
             </div>
 
             <div class="admin-tools" style="margin-top: 2em; text-align: center;">
@@ -64,21 +77,21 @@
         // Clear storage function
         function clearStorage() {
             if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים?')) {
-                localStorage.clear();
-                sessionStorage.clear();
+                storage.clear();
                 alert('כל הנתונים נמחקו בהצלחה');
                 window.location.reload();
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check if user is already logged in to a garden
-            const currentGardenId = sessionStorage.getItem('currentGardenId');
-            if (currentGardenId) {
-                window.location.href = 'events.html';
-                return;
+        // Exit garden function
+        function exitGarden() {
+            if (confirm('האם אתה בטוח שברצונך לצאת מהגן?')) {
+                sessionStorage.removeItem('currentGardenId');
+                window.location.reload();
             }
-            
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             // Hamburger menu toggle
             const hamburgerBtn = document.getElementById('hamburgerBtn');
             const navList = document.getElementById('navList');
