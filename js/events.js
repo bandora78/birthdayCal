@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: currentGarden, error: gardenError } = await supabase
             .from('kindergartens')
             .select('name')
-            .eq('garden_id', currentGardenIdForDisplay)
+            .eq('id', currentGardenIdForDisplay)  // Changed from garden_id to id
             .single();
 
         if (gardenError) {
@@ -610,16 +610,10 @@ async function loadAttendance(event) {
          return;
     }
 
-    const currentGardenId = sessionStorage.getItem('currentGardenId');
-     if (!currentGardenId) {
-         console.warn('Cannot load attendance: Garden ID missing.');
-         return;
-     }
-
-    // Fetch attendance records for the event, including garden name
+    // Fetch attendance records for the event
     const { data: attendanceRecords, error } = await supabase
         .from('attendance')
-        .select('*, kindergartens(name)') // Select all attendance fields and join with kindergartens table to get garden name
+        .select('*, kindergartens(name)')
         .eq('event_id', event.id);
 
     if (error) {
@@ -636,12 +630,12 @@ async function loadAttendance(event) {
         attendanceRecords.forEach(record => {
             const row = attendanceTableBodyElement.insertRow();
             const statusCell = row.insertCell();
-            const gardenCell = row.insertCell();
-            const notesCell = row.insertCell();
+            const parentCell = row.insertCell();
+            const childCell = row.insertCell();
 
             statusCell.textContent = getAttendanceStatusText(record.status);
-            gardenCell.textContent = record.kindergartens ? record.kindergartens.name : 'לא ידוע'; // Display garden name
-            notesCell.textContent = record.notes || '';
+            parentCell.textContent = record.parent_name || '';
+            childCell.textContent = record.child_name || '';
         });
     } else {
         const row = attendanceTableBodyElement.insertRow();
@@ -664,7 +658,7 @@ function getAttendanceStatusText(status) {
 // Handle attendance form submission
 const attendanceForm = document.getElementById('attendanceForm');
 if (attendanceForm) {
-    attendanceForm.addEventListener('submit', (e) => {
+    attendanceForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const eventDetailsElement = document.getElementById('eventDetails');
@@ -679,23 +673,38 @@ if (attendanceForm) {
         };
 
         // Update event attendance
-        const events = storage.get('events') || [];
-        const eventIndex = events.findIndex(e => String(e.id) === String(currentEventId));
+        const { data: event, error: eventError } = await supabase
+            .from('events')
+            .select('*')
+            .eq('id', currentEventId)
+            .single();
 
-        if (eventIndex !== -1) {
-            // Ensure attendance array exists
-            if (!events[eventIndex].attendance) {
-                 events[eventIndex].attendance = [];
-            }
-            events[eventIndex].attendance.push(attendanceData);
-            storage.set('events', events);
-
-            // Reload attendance list
-            loadAttendance(events[eventIndex]);
-
-            // Clear form
-            attendanceForm.reset();
+        if (eventError) {
+            console.error('Error fetching event:', eventError);
+            return;
         }
+
+        // Add attendance record
+        const { data: attendance, error: attendanceError } = await supabase
+            .from('attendance')
+            .insert([{
+                event_id: currentEventId,
+                parent_name: attendanceData.parentName,
+                child_name: attendanceData.childName,
+                status: attendanceData.status,
+                garden_id: event.garden_id
+            }]);
+
+        if (attendanceError) {
+            console.error('Error adding attendance:', attendanceError);
+            return;
+        }
+
+        // Reload attendance list
+        loadAttendance(event);
+
+        // Clear form
+        attendanceForm.reset();
     });
 }
 
