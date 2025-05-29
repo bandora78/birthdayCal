@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add child button click handler
     const addChildBtn = document.getElementById('addChildBtn');
     if (addChildBtn) {
-        addChildBtn.addEventListener('click', () => {
+        addChildBtn.onclick = function() {
             const childName = prompt('הזן את שם הילד:');
             if (!childName) return;
 
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Reload children list
             loadChildren();
-        });
+        };
     }
 });
 

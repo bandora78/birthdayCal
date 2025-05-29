@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const childrenList = document.getElementById('childrenList');
     const addChildForm = document.getElementById('addChildForm');
     const childrenTableBody = document.getElementById('childrenTableBody');
+    const gardenIdDisplay = document.getElementById('gardenIdDisplay');
+    const parentRegLink = document.getElementById('parentRegLink');
+    const copyParentLinkBtn = document.getElementById('copyParentLinkBtn');
+    const copyParentLinkMsg = document.getElementById('copyParentLinkMsg');
     
     let childCount = 1;
     let currentGardenId = null;
@@ -39,122 +43,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Utility to generate unique 8-char gardenId
-    function generateGardenId() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let id = '';
-        for (let i = 0; i < 8; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
-    }
-
-    // Check for gardenId in URL (parent registration mode)
+    // Check if we have a gardenId in the URL
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
 
     if (gardenIdFromUrl) {
-        // We're in parent registration mode
-        if (kindergartenForm) kindergartenForm.style.display = 'none';
-        if (registrationForm) registrationForm.style.display = 'block';
-        if (gardenLinkSection) gardenLinkSection.style.display = 'none';
-
-        // Add child button functionality
-        if (addChildBtn) {
-            addChildBtn.addEventListener('click', () => {
-                if (childCount >= 5) {
-                    alert('לא ניתן להוסיף יותר מ-5 ילדים ברישום אחד');
-                    return;
-                }
-                childCount++;
-                
-                const childEntry = document.createElement('div');
-                childEntry.className = 'child-entry';
-                childEntry.innerHTML = `
-                    <h3>ילד/ה ${childCount}</h3>
-                    <div class="form-group">
-                        <label for="childName${childCount}">שם הילד/ה:</label>
-                        <input type="text" id="childName${childCount}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="childBirthday${childCount}">תאריך לידה:</label>
-                        <input type="date" id="childBirthday${childCount}" required>
-                    </div>
-                `;
-                if (childrenContainer) childrenContainer.appendChild(childEntry);
-            });
-        }
-
-        // Handle parent registration form submission
-        if (registrationForm) {
-            registrationForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                const parentData = {
-                    name: document.getElementById('parentName').value,
-                    phone: document.getElementById('parentPhone').value,
-                    email: document.getElementById('parentEmail').value
-                };
-
-                const children = [];
-                for (let i = 1; i <= childCount; i++) {
-                    children.push({
-                        id: Date.now().toString() + i,
-                        name: document.getElementById(`childName${i}`).value,
-                        birthday: document.getElementById(`childBirthday${i}`).value,
-                        gardenId: gardenIdFromUrl,
-                        parentName: parentData.name,
-                        parentPhone: parentData.phone,
-                        parentEmail: parentData.email
-                    });
-                }
-
-                // Save to storage
-                const childrenList = storage.get('children') || [];
-                children.forEach(child => {
-                    childrenList.push(child);
-                });
-                storage.set('children', childrenList);
-
-                alert('הרישום בוצע בהצלחה!');
-                window.location.href = 'index.html';
-            });
-        }
+        // If we have a gardenId in the URL, we're in parent registration mode
+        sessionStorage.setItem('currentGardenId', gardenIdFromUrl);
+        kindergartenForm.style.display = 'none';
+        gardenLinkSection.style.display = 'none';
+        childrenList.style.display = 'block';
+        loadChildren();
     } else {
-        // We're in kindergarten registration mode
-        if (kindergartenForm) {
-            kindergartenForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                const gardenId = generateGardenId();
-                const kindergartenData = {
-                    id: Date.now(),
-                    name: document.getElementById('kindergartenName').value,
-                    schoolYear: document.getElementById('schoolYear').value,
-                    teacherName: document.getElementById('teacherName').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value,
-                    gardenId: gardenId
-                };
-
-                // Save kindergarten data
-                const kindergartens = storage.get('kindergartens') || [];
-                kindergartens.push(kindergartenData);
-                storage.set('kindergartens', kindergartens);
-
-                // Show success message and garden ID
-                if (gardenLinkSection) {
-                    gardenLinkSection.style.display = 'block';
-                    document.getElementById('gardenIdDisplay').textContent = gardenId;
-                    const parentLink = `${window.location.origin}${window.location.pathname}?gardenId=${gardenId}`;
-                    document.getElementById('parentRegLink').value = parentLink;
-                }
-
-                // Store current garden ID and redirect
-                sessionStorage.setItem('currentGardenId', gardenId);
-                window.location.href = 'events.html';
+        // We're in garden registration mode
+        kindergartenForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const kindergartenName = document.getElementById('kindergartenName').value;
+            const schoolYear = document.getElementById('schoolYear').value;
+            const teacherName = document.getElementById('teacherName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            
+            // Generate a unique garden ID
+            const gardenId = generateGardenId();
+            
+            // Create new kindergarten object
+            const newKindergarten = {
+                gardenId,
+                name: kindergartenName,
+                schoolYear,
+                teacherName,
+                email,
+                phone
+            };
+            
+            // Save to storage
+            const kindergartens = storage.get('kindergartens') || [];
+            kindergartens.push(newKindergarten);
+            storage.set('kindergartens', kindergartens);
+            
+            // Store current garden ID in session storage
+            sessionStorage.setItem('currentGardenId', gardenId);
+            
+            // Show success message and garden link
+            kindergartenForm.style.display = 'none';
+            gardenLinkSection.style.display = 'block';
+            childrenList.style.display = 'block';
+            
+            // Display garden ID
+            gardenIdDisplay.textContent = gardenId;
+            
+            // Create and display parent registration link
+            const registrationLink = `${window.location.origin}/children.html?gardenId=${gardenId}`;
+            parentRegLink.value = registrationLink;
+            
+            // Copy link functionality
+            copyParentLinkBtn.addEventListener('click', () => {
+                parentRegLink.select();
+                document.execCommand('copy');
+                copyParentLinkMsg.style.display = 'block';
+                setTimeout(() => {
+                    copyParentLinkMsg.style.display = 'none';
+                }, 2000);
             });
-        }
+        });
     }
 
     // Load and display children for a specific gardenId
@@ -222,4 +175,87 @@ document.addEventListener('DOMContentLoaded', () => {
         // Load children for current garden
         loadChildren(currentGardenId);
     }
-}); 
+});
+
+function generateGardenId() {
+    return Math.random().toString(36).substr(2, 8).toUpperCase();
+}
+
+function loadChildren() {
+    const children = storage.get('children') || [];
+    const currentGardenId = sessionStorage.getItem('currentGardenId');
+    const gardenChildren = children.filter(child => child.gardenId === currentGardenId);
+    
+    const tbody = document.getElementById('childrenTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    gardenChildren.forEach(child => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${child.name}</td>
+            <td>${child.parentName}</td>
+            <td>${formatDate(child.birthDate)}</td>
+            <td>
+                <button onclick="editChild('${child.id}')" class="edit-btn">ערוך</button>
+                <button onclick="deleteChild('${child.id}')" class="delete-btn">מחק</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Make these functions global
+window.editChild = function(childId) {
+    const children = storage.get('children') || [];
+    const child = children.find(c => c.id === childId);
+    if (!child) return;
+
+    const newName = prompt('שם הילד:', child.name);
+    if (!newName) return;
+
+    const newParentName = prompt('שם ההורה:', child.parentName);
+    if (!newParentName) return;
+
+    const newBirthDate = prompt('תאריך לידה (YYYY-MM-DD):', child.birthDate);
+    if (!newBirthDate) return;
+
+    // Validate date format
+    if (!isValidDate(newBirthDate)) {
+        alert('תאריך לא תקין. אנא השתמש בפורמט YYYY-MM-DD');
+        return;
+    }
+
+    // Update child in storage
+    child.name = newName;
+    child.parentName = newParentName;
+    child.birthDate = newBirthDate;
+    storage.set('children', children);
+
+    // Reload children list
+    loadChildren();
+};
+
+window.deleteChild = function(childId) {
+    if (!confirm('האם אתה בטוח שברצונך למחוק את הילד?')) return;
+
+    const children = storage.get('children') || [];
+    const updatedChildren = children.filter(c => c.id !== childId);
+    storage.set('children', updatedChildren);
+
+    // Reload children list
+    loadChildren();
+};
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('he-IL');
+}
+
+function isValidDate(dateString) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) return false;
+    
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date);
+} 
