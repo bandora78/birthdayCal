@@ -13,7 +13,7 @@ window.showModal = function(title, childData = null) {
     const modalTitle = document.getElementById('modalTitle');
     const childForm = document.getElementById('childForm');
     const childIdInput = document.getElementById('childId');
-    const birthDatePicker = flatpickr("#birthDate", { // Re-initialize or get instance if needed, for now assuming it's available
+    const birthDatePicker = flatpickr("#birthDate", {
         locale: "he",
         dateFormat: "Y-m-d",
         maxDate: "today",
@@ -25,8 +25,8 @@ window.showModal = function(title, childData = null) {
     if (childData) {
         childIdInput.value = childData.id;
         document.getElementById('childName').value = childData.name;
-        document.getElementById('parentName').value = childData.parentName;
-        birthDatePicker.setDate(childData.birthDate);
+        document.getElementById('parentName').value = childData.parent_name;
+        birthDatePicker.setDate(childData.birth_date);
     } else {
         childForm.reset();
         childIdInput.value = '';
@@ -38,16 +38,16 @@ window.showModal = function(title, childData = null) {
 window.closeModal = function() {
     const modal = document.getElementById('childFormModal');
     const childForm = document.getElementById('childForm');
-    const birthDatePicker = document.querySelector("#birthDate")._flatpickr; // Get Flatpickr instance
+    const birthDatePicker = document.querySelector("#birthDate")._flatpickr;
 
     modal.style.display = 'none';
     childForm.reset();
-    if (birthDatePicker) { // Clear date picker only if instance is found
+    if (birthDatePicker) {
         birthDatePicker.clear();
     }
 };
 
-document.addEventListener('DOMContentLoaded', async () => { // Made async to allow await calls
+document.addEventListener('DOMContentLoaded', async () => {
     // Check if we have a gardenId in the URL
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
@@ -67,19 +67,18 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async to all
     // Load garden data from Supabase
     const { data: kindergartens, error } = await supabase
         .from('kindergartens')
-        .select('name') // Select only the name
-        .eq('id', currentGardenId) // Filter by the current garden ID
-        .single(); // Expecting only one result
+        .select('name')
+        .eq('id', currentGardenId)
+        .single();
     
     if (error) {
         console.error('Error fetching garden data:', error);
         alert('שגיאה בטעינת פרטי הגן.');
-        // Decide how to handle this error - maybe redirect or show a message
-        return; // Stop further execution if garden data cannot be loaded
+        return;
     }
 
     // Check if a garden was found with the current ID
-    const currentGarden = kindergartens; // Since we used .single(), data is the object or null
+    const currentGarden = kindergartens;
 
     if (currentGarden) {
         // Update garden name display
@@ -94,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async to all
             gardenInfoSection.style.display = 'block';
         }
 
-        // Update parent registration link (using the garden ID from session/URL)
+        // Update parent registration link
         const parentRegLink = document.getElementById('parentRegLink');
         if (parentRegLink) {
             const registrationLink = `${window.location.origin}/children.html?gardenId=${currentGardenId}`;
@@ -115,14 +114,12 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async to all
             });
         }
     } else {
-         // Garden ID is in session/URL but no matching garden found in Supabase
-         alert('הגן לא נמצא במערכת. אנא וודא את מזהה הגן.');
-         window.location.href = 'index.html'; // Redirect to home or registration
-         return; // Stop further execution
+        alert('הגן לא נמצא במערכת. אנא וודא את מזהה הגן.');
+        window.location.href = 'index.html';
+        return;
     }
 
     // Initialize Flatpickr for date picker
-    // Moved Flatpickr initialization inside DOMContentLoaded to ensure the input field exists
     const birthDatePicker = flatpickr("#birthDate", {
         locale: "he",
         dateFormat: "Y-m-d",
@@ -131,14 +128,14 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async to all
         theme: "material_blue"
     });
 
-    // Modal elements - Get references inside DOMContentLoaded
+    // Modal elements
     const modal = document.getElementById('childFormModal');
     const closeBtn = document.querySelector('.close');
     const childForm = document.getElementById('childForm');
 
     // Close modal when clicking the X button
     if (closeBtn) {
-       closeBtn.onclick = window.closeModal;
+        closeBtn.onclick = window.closeModal;
     }
 
     // Close modal when clicking outside
@@ -148,39 +145,37 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async to all
         }
     }
 
-    // Handle form submission (will be updated to use Supabase INSERT/UPDATE)
-    childForm.addEventListener('submit', async (e) => { // Made async
+    // Handle form submission
+    childForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const childIdInput = document.getElementById('childId'); // Get reference inside submit handler
-        const childId = childIdInput.value; // Get the existing child ID if in edit mode
+        const childIdInput = document.getElementById('childId');
+        const childId = childIdInput.value;
 
         const childData = {
-            // id is generated by Supabase on INSERT
-            garden_id: currentGardenId, // Link child to current garden by ID
+            garden_id: currentGardenId,
             name: document.getElementById('childName').value,
-            parent_name: document.getElementById('parentName').value, // Use parent_name column name
-            birth_date: document.getElementById('birthDate').value // Use birth_date column name
+            parent_name: document.getElementById('parentName').value,
+            birth_date: document.getElementById('birthDate').value
         };
 
         let operationError = null;
 
         if (childId) {
-            // Edit existing child (Supabase UPDATE)
+            // Edit existing child
             const { error } = await supabase
                 .from('children')
-                .update(childData) // Data to update
-                .eq('id', childId); // Condition to find the child
+                .update(childData)
+                .eq('id', childId);
             operationError = error;
             if (!error) alert('פרטי הילד עודכנו בהצלחה!');
-
         } else {
-            // Add new child (Supabase INSERT)
+            // Add new child
             const { error } = await supabase
                 .from('children')
-                .insert([childData]); // Data to insert (as an array)
+                .insert([childData]);
             operationError = error;
-             if (!error) alert('הילד נוסף בהצלחה!');
+            if (!error) alert('הילד נוסף בהצלחה!');
         }
 
         if (operationError) {
@@ -189,18 +184,20 @@ document.addEventListener('DOMContentLoaded', async () => { // Made async to all
             return;
         }
 
-        // Reload children list and close modal after successful operation
-        window.loadChildren(); // Call the updated function
-        window.closeModal(); // Use global closeModal
+        // Reload children list and close modal
+        window.loadChildren();
+        window.closeModal();
     });
 
-    // Load and display children (call the updated function)
+    // Load initial children list
     window.loadChildren();
 
     // Add child button click handler
     const addChildBtn = document.getElementById('addChildBtn');
     if (addChildBtn) {
-        addChildBtn.onclick = () => window.showModal('הוספת ילד חדש'); // Use global showModal
+        addChildBtn.addEventListener('click', () => {
+            window.showModal('הוספת ילד חדש');
+        });
     }
 });
 
