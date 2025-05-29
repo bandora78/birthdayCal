@@ -1,19 +1,27 @@
 // This file handles the events calendar and details logic
 
-document.addEventListener('DOMContentLoaded', () => {
-    const calendarGrid = document.getElementById('calendarGrid');
-    const currentMonthElement = document.getElementById('currentMonth');
-    const prevMonthBtn = document.getElementById('prevMonth');
-    const nextMonthBtn = document.getElementById('nextMonth');
-    // eventDetails, attendanceForm, attendanceTableBody will be accessed later in showEventDetails or within event listeners
+// Global variables
+let currentDate = new Date();
+let currentGardenId = null;
 
-    let currentDate = new Date();
-    // currentEventId and currentEventType are managed via dataset on eventDetails now
+// Global DOM element references
+let calendarGrid;
+let currentMonthElement;
+let prevMonthBtn;
+let nextMonthBtn;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize DOM element references
+    calendarGrid = document.getElementById('calendarGrid');
+    currentMonthElement = document.getElementById('currentMonth');
+    prevMonthBtn = document.getElementById('prevMonth');
+    nextMonthBtn = document.getElementById('nextMonth');
+    // eventDetails, attendanceForm, attendanceTableBody will be accessed later in showEventDetails or within event listeners
 
     // Get garden ID from URL or session storage
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
-    let currentGardenId = sessionStorage.getItem('currentGardenId');
+    currentGardenId = sessionStorage.getItem('currentGardenId');
 
     if (gardenIdFromUrl && gardenIdFromUrl !== currentGardenId) {
         // If gardenId in URL is different from session, update session
@@ -342,7 +350,7 @@ window.showEventDetails = function(event) {
     const eventNotesElement = document.getElementById('eventNotes');
     const eventTypeTextElement = document.getElementById('eventTypeText');
 
-     // Ensure elements exist before accessing
+    // Ensure elements exist before accessing
     if (!eventDetails || !attendanceTableBody || !eventChildNameElement || !eventDateElement || !eventLocationElement || !eventNotesElement || !eventTypeTextElement) {
         console.error("One or more event details elements not found!");
         return;
@@ -356,24 +364,38 @@ window.showEventDetails = function(event) {
 
     // Display child name only if it's a birthday party
     if (event.type === 'birthday' && event.childId) {
-         const currentGardenId = storage.getItem('currentGardenId'); // Get gardenId from storage
-         const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-         const child = children.find(c => c.id === event.childId);
-         if (child) {
-             eventChildNameElement.textContent = child.name;
-         }
+        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
+        const child = children.find(c => c.id === event.childId);
+        if (child) {
+            eventChildNameElement.textContent = child.name;
+        }
     }
 
     // Display event type
     eventTypeTextElement.textContent = event.type === 'birthday' ? 'יום הולדת' : 'אחר';
 
-    eventDateElement.textContent = window.formatDate(event.date);
+    // Format and display date
+    const eventDate = new Date(event.date);
+    eventDateElement.textContent = eventDate.toLocaleDateString('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
     eventLocationElement.textContent = event.location;
     eventNotesElement.textContent = event.notes || 'אין';
+
+    // Initialize attendance array if it doesn't exist
+    if (!event.attendance) {
+        event.attendance = [];
+    }
 
     // Show attendance section
     eventDetails.style.display = 'block';
     loadAttendance(event);
+
+    // Scroll to event details
+    eventDetails.scrollIntoView({ behavior: 'smooth' });
 };
 
 // Global function to close event details section (called from deleteEvent)

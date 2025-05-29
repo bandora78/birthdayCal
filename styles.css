@@ -192,20 +192,116 @@ th, td {
 
 /* Event Details */
 .event-details {
-    background-color: white;
+    background: #fffde7cc;
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 30px;
+    box-shadow: 0 4px 24px #ffe082;
     margin-top: 2rem;
+    position: relative;
 }
 
 .event-info {
     margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px #ffe082;
+    border: 2px dashed #ffb74d;
+}
+
+.event-info p {
+    margin: 0.8em 0;
+    font-size: 1.1em;
+}
+
+.event-info strong {
+    color: #43a047;
+    margin-left: 0.5em;
+    text-shadow: 1px 1px 0 #fff59d;
 }
 
 .attendance-section {
-    border-top: 1px solid #ddd;
+    border-top: 2px dashed #ffb74d;
     padding-top: 2rem;
+    margin-top: 2rem;
+}
+
+.attendance-section h3 {
+    color: #43a047;
+    margin-bottom: 1rem;
+    text-shadow: 1px 1px 0 #fff59d;
+}
+
+.attendance-table {
+    width: 100%;
+    margin-bottom: 2rem;
+    border-collapse: separate;
+    border-spacing: 0 0.5em;
+}
+
+.attendance-table th {
+    background: #fff;
+    color: #43a047;
+    font-weight: bold;
+    padding: 0.8em;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #ffe082;
+}
+
+.attendance-table td {
+    background: #fff;
+    padding: 0.8em;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #ffe082;
+}
+
+.attendance-form {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 20px;
+    margin-top: 1rem;
+    box-shadow: 0 2px 8px #ffe082;
+    border: 2px dashed #ffb74d;
+}
+
+.attendance-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.attendance-form label {
+    color: #43a047;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff59d;
+}
+
+.attendance-form input,
+.attendance-form select {
+    border: 2px solid #4fc3f7;
+    padding: 0.5em;
+    border-radius: 15px;
+    width: 100%;
+    background: #fff;
+}
+
+.event-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.close-details {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6d4c41;
+    transition: color 0.2s;
+}
+
+.close-details:hover {
+    color: #ff4081;
 }
 
 /* Welcome Section */
