@@ -152,6 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newGardenSection) newGardenSection.style.display = 'block';
         if (gardenExitSection) gardenExitSection.style.display = 'none';
     }
+
+    // Function to close event details section
+    function closeEventDetails() {
+        const eventDetails = document.getElementById('eventDetails');
+        if (eventDetails) eventDetails.style.display = 'none';
+    }
+
+    // Close event details when clicking the X button
+    const closeDetailsBtn = document.querySelector('.close-details');
+    if (closeDetailsBtn) {
+        closeDetailsBtn.onclick = closeEventDetails;
+    }
 });
 
 // Global functions for children management

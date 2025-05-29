@@ -156,29 +156,7 @@
     <!-- Add Flatpickr JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/he.js"></script>
-    <script src="js/events.js"></script>
-    <script>
-        // Hamburger menu toggle
-        const hamburgerBtn = document.getElementById('hamburgerBtn');
-        const navList = document.getElementById('navList');
-        hamburgerBtn.addEventListener('click', function() {
-            const expanded = this.getAttribute('aria-expanded') === 'true';
-            this.setAttribute('aria-expanded', !expanded);
-            navList.classList.toggle('open');
-        });
-
-         // Function to close event details section
-         function closeEventDetails() {
-             const eventDetails = document.getElementById('eventDetails');
-             if (eventDetails) eventDetails.style.display = 'none';
-         }
-
-         // Close event details when clicking the X button
-         const closeDetailsBtn = document.querySelector('.close-details');
-         if (closeDetailsBtn) {
-             closeDetailsBtn.onclick = closeEventDetails;
-         }
-    </script>
-    <script src="js/main.js"></script>
+    <script type="module" src="js/events.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html> 
