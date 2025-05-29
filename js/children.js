@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!birthDate) return;
 
             // Validate date format
-            if (!isValidDate(birthDate)) {
+            if (!window.isValidDate(birthDate)) {
                 alert('תאריך לא תקין. אנא השתמש בפורמט YYYY-MM-DD');
                 return;
             }
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add child to storage
             const children = storage.get('children') || [];
             const newChild = {
-                id: generateId(),
+                id: window.generateId(),
                 gardenId: currentGardenId,
                 name: childName,
                 parentName: parentName,

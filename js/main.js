@@ -19,20 +19,11 @@ function generateChildId(gardenId) {
 // Storage helper
 const storage = {
     get: function(key) {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : null;
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
     },
     set: function(key, value) {
-        try {
-            const stringifiedValue = JSON.stringify(value);
-            localStorage.setItem(key, stringifiedValue);
-            console.log(`storage.set: Key '${key}' set successfully in localStorage.`); // Log success
-            // Verify immediately after setting
-            const verifiedItem = localStorage.getItem(key);
-            console.log(`storage.set: Verification for key '${key}':`, verifiedItem ? JSON.parse(verifiedItem) : null); // Verify
-        } catch (error) {
-            console.error(`storage.set: Error setting key '${key}' in localStorage:`, error);
-        }
+        localStorage.setItem(key, JSON.stringify(value));
     },
     remove: function(key) {
         localStorage.removeItem(key);
@@ -155,4 +146,92 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newGardenSection) newGardenSection.style.display = 'block';
         if (gardenExitSection) gardenExitSection.style.display = 'none';
     }
-}); 
+});
+
+// Utility functions
+window.formatDate = function(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('he-IL');
+};
+
+window.isValidDate = function(dateString) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) return false;
+    
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date);
+};
+
+window.generateId = function() {
+    return Math.random().toString(36).substr(2, 9);
+};
+
+window.generateGardenId = function() {
+    return Math.random().toString(36).substr(2, 8).toUpperCase();
+};
+
+// Global functions for children management
+window.loadChildren = function() {
+    const children = storage.get('children') || [];
+    const currentGardenId = sessionStorage.getItem('currentGardenId');
+    const gardenChildren = children.filter(child => child.gardenId === currentGardenId);
+    
+    const tbody = document.getElementById('childrenTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    gardenChildren.forEach(child => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${child.name}</td>
+            <td>${child.parentName}</td>
+            <td>${formatDate(child.birthDate)}</td>
+            <td>
+                <button onclick="editChild('${child.id}')" class="edit-btn">ערוך</button>
+                <button onclick="deleteChild('${child.id}')" class="delete-btn">מחק</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+};
+
+window.editChild = function(childId) {
+    const children = storage.get('children') || [];
+    const child = children.find(c => c.id === childId);
+    if (!child) return;
+
+    const newName = prompt('שם הילד:', child.name);
+    if (!newName) return;
+
+    const newParentName = prompt('שם ההורה:', child.parentName);
+    if (!newParentName) return;
+
+    const newBirthDate = prompt('תאריך לידה (YYYY-MM-DD):', child.birthDate);
+    if (!newBirthDate) return;
+
+    // Validate date format
+    if (!isValidDate(newBirthDate)) {
+        alert('תאריך לא תקין. אנא השתמש בפורמט YYYY-MM-DD');
+        return;
+    }
+
+    // Update child in storage
+    child.name = newName;
+    child.parentName = newParentName;
+    child.birthDate = newBirthDate;
+    storage.set('children', children);
+
+    // Reload children list
+    loadChildren();
+};
+
+window.deleteChild = function(childId) {
+    if (!confirm('האם אתה בטוח שברצונך למחוק את הילד?')) return;
+
+    const children = storage.get('children') || [];
+    const updatedChildren = children.filter(c => c.id !== childId);
+    storage.set('children', updatedChildren);
+
+    // Reload children list
+    loadChildren();
+}; 

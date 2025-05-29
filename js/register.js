@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const parentLink = `${window.location.origin}/children.html?gardenId=${currentGardenId}`;
             parentRegLink.value = parentLink;
             
-            loadChildren();
+            window.loadChildren();
         } else {
             alert('יש להשלים קודם את רישום הגן');
             window.location.href = 'register.html';
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         kindergartenForm.style.display = 'none';
         gardenLinkSection.style.display = 'none';
         childrenList.style.display = 'block';
-        loadChildren();
+        window.loadChildren();
     } else {
         // We're in garden registration mode
         kindergartenForm.addEventListener('submit', (e) => {
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const phone = document.getElementById('phone').value;
             
             // Generate a unique garden ID
-            const gardenId = generateGardenId();
+            const gardenId = window.generateGardenId();
             
             // Create new kindergarten object
             const newKindergarten = {
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         childrenList.style.display = 'block';
         
         // Load children for current garden
-        loadChildren();
+        window.loadChildren();
     }
 });
 
