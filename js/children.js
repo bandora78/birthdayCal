@@ -9,7 +9,9 @@ import { isValidDate } from './main.js'; // Import isValidDate
 
 // Global functions for modal management
 window.showModal = function(title, childData = null) {
+    console.log('showModal called with title:', title, 'and data:', childData); // Log entry
     const modal = document.getElementById('childFormModal');
+    console.log('Modal element found:', modal); // Log modal element
     const modalTitle = document.getElementById('modalTitle');
     const childForm = document.getElementById('childForm');
     const childIdInput = document.getElementById('childId');
@@ -48,6 +50,7 @@ window.closeModal = function() {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOMContentLoaded in children.js fired'); // Log DOMContentLoaded
     // Check if we have a gardenId in the URL
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
@@ -194,8 +197,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Add child button click handler
     const addChildBtn = document.getElementById('addChildBtn');
+    console.log('addChildBtn element found:', addChildBtn); // Log button element
     if (addChildBtn) {
         addChildBtn.addEventListener('click', () => {
+            console.log('addChildBtn clicked'); // Log button click
             window.showModal('הוספת ילד חדש');
         });
     }
@@ -204,13 +209,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Global functions for children management
 
 // Edit child function (will be updated to use Supabase data)
-window.editChild = async function(childId) { // Made async
+window.editChild = async function(childId) {
     // Fetch child data from Supabase
     const { data: child, error } = await supabase
         .from('children')
-        .select('id, name, parent_name, birth_date') // Select necessary fields
-        .eq('id', childId) // Filter by child ID
-        .single(); // Expecting one result
+        .select('id, name, parent_name, birth_date')
+        .eq('id', childId)
+        .single();
 
     if (error) {
         console.error('Error fetching child for edit:', error);
@@ -223,10 +228,10 @@ window.editChild = async function(childId) { // Made async
         const childDataForModal = {
             id: child.id,
             name: child.name,
-            parentName: child.parent_name, // Map parent_name from Supabase
-            birthDate: child.birth_date // Map birth_date from Supabase
+            parentName: child.parent_name,
+            birthDate: child.birth_date
         };
-        window.showModal('עריכת ילד', childDataForModal); // Use global showModal
+        window.showModal('עריכת ילד', childDataForModal);
     } else {
         console.warn('Child not found for edit:', childId);
         alert('הילד לא נמצא.');
@@ -234,14 +239,14 @@ window.editChild = async function(childId) { // Made async
 };
 
 // Delete child function (will be updated to use Supabase DELETE)
-window.deleteChild = async function(childId) { // Made async
-    if (!confirm('האם אתה בטוח שברצונך למחוק את הילד?')) return;
+window.deleteChild = async function(childId) {
+    if (!confirm('האם אתה בטוח שברצונך למחוק ילד זה?')) return;
 
     // Delete child from Supabase
     const { error } = await supabase
         .from('children')
         .delete()
-        .eq('id', childId); // Condition to find the child
+        .eq('id', childId);
 
     if (error) {
         console.error('Error deleting child:', error);
@@ -251,11 +256,11 @@ window.deleteChild = async function(childId) { // Made async
 
     alert('הילד נמחק בהצלחה!');
     // Reload children list after deletion
-    window.loadChildren(); // Call the updated function
+    window.loadChildren();
 };
 
 // Load and display children from Supabase
-window.loadChildren = async function() { // Made function async
+window.loadChildren = async function() {
     const currentGardenId = sessionStorage.getItem('currentGardenId');
     const tbody = document.getElementById('childrenTableBody');
 
@@ -267,14 +272,14 @@ window.loadChildren = async function() { // Made function async
     // Fetch children from Supabase for the current garden
     const { data: children, error } = await supabase
         .from('children')
-        .select('id, name, parent_name, birth_date, garden_id') // Select required fields
-        .eq('garden_id', currentGardenId) // Filter by current garden ID
-        .order('name', { ascending: true }); // Order by name (optional)
+        .select('id, name, parent_name, birth_date, garden_id')
+        .eq('garden_id', currentGardenId)
+        .order('name', { ascending: true });
 
     if (error) {
         console.error('Error fetching children:', error);
         alert('שגיאה בטעינת רשימת הילדים. אנא נסה שנית.');
-        tbody.innerHTML = '<tr><td colspan="4">שגיאה בטעינת הילדים.</td></tr>'; // Display error message
+        tbody.innerHTML = '<tr><td colspan="4">שגיאה בטעינת הילדים.</td></tr>';
         return;
     }
 
@@ -287,9 +292,9 @@ window.loadChildren = async function() { // Made function async
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${child.name}</td>
-                <td>${child.id}</td> <!-- Display Supabase ID -->
-                <td>${formatDate(child.birth_date)}</td> <!-- Use birth_date and imported formatDate -->
-                <td>${child.parent_name}</td> <!-- Use parent_name -->
+                <td>${child.id}</td>
+                <td>${formatDate(child.birth_date)}</td>
+                <td>${child.parent_name}</td>
                 <td>
                     <button onclick="window.editChild('${child.id}')" class="edit-btn">ערוך</button>
                     <button onclick="window.deleteChild('${child.id}')" class="delete-btn">מחק</button>
