@@ -1,5 +1,45 @@
 // This file handles the children list page logic
 
+// Global functions for modal management
+window.showModal = function(title, childData = null) {
+    const modal = document.getElementById('childFormModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const childForm = document.getElementById('childForm');
+    const childIdInput = document.getElementById('childId');
+    const birthDatePicker = flatpickr("#birthDate", { // Re-initialize or get instance if needed, for now assuming it's available
+        locale: "he",
+        dateFormat: "Y-m-d",
+        maxDate: "today",
+        disableMobile: "true",
+        theme: "material_blue"
+    });
+
+    modalTitle.textContent = title;
+    if (childData) {
+        childIdInput.value = childData.id;
+        document.getElementById('childName').value = childData.name;
+        document.getElementById('parentName').value = childData.parentName;
+        birthDatePicker.setDate(childData.birthDate);
+    } else {
+        childForm.reset();
+        childIdInput.value = '';
+        birthDatePicker.clear();
+    }
+    modal.style.display = 'block';
+};
+
+window.closeModal = function() {
+    const modal = document.getElementById('childFormModal');
+    const childForm = document.getElementById('childForm');
+    const birthDatePicker = document.querySelector("#birthDate")._flatpickr; // Get Flatpickr instance
+
+    modal.style.display = 'none';
+    childForm.reset();
+    if (birthDatePicker) { // Clear date picker only if instance is found
+        birthDatePicker.clear();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // Check if we have a gardenId in the URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -57,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize Flatpickr for date picker
+    // Moved Flatpickr initialization inside DOMContentLoaded to ensure the input field exists
     const birthDatePicker = flatpickr("#birthDate", {
         locale: "he",
         dateFormat: "Y-m-d",
@@ -65,41 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
         theme: "material_blue"
     });
 
-    // Modal elements
+    // Modal elements - Get references inside DOMContentLoaded
     const modal = document.getElementById('childFormModal');
     const closeBtn = document.querySelector('.close');
-    const modalTitle = document.getElementById('modalTitle');
     const childForm = document.getElementById('childForm');
-    const childIdInput = document.getElementById('childId');
-
-    // Show modal function
-    function showModal(title, childData = null) {
-        modalTitle.textContent = title;
-        if (childData) {
-            childIdInput.value = childData.id;
-            document.getElementById('childName').value = childData.name;
-            document.getElementById('parentName').value = childData.parentName;
-            birthDatePicker.setDate(childData.birthDate);
-        } else {
-            childForm.reset();
-            childIdInput.value = '';
-        }
-        modal.style.display = 'block';
-    }
-
-    // Close modal function
-    function closeModal() {
-        modal.style.display = 'none';
-        childForm.reset();
-    }
 
     // Close modal when clicking the X button
-    closeBtn.onclick = closeModal;
+    if (closeBtn) {
+       closeBtn.onclick = window.closeModal;
+    }
 
     // Close modal when clicking outside
     window.onclick = function(event) {
         if (event.target === modal) {
-            closeModal();
+            window.closeModal();
         }
     }
 
@@ -107,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     childForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
+        const childIdInput = document.getElementById('childId'); // Get reference inside submit handler
         const childData = {
             id: childIdInput.value || window.generateId(),
             gardenId: currentGardenId,
@@ -130,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         storage.set('children', children);
         window.loadChildren();
-        closeModal();
+        window.closeModal(); // Use global closeModal
     });
 
     // Load and display children
@@ -139,16 +160,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add child button click handler
     const addChildBtn = document.getElementById('addChildBtn');
     if (addChildBtn) {
-        addChildBtn.onclick = () => showModal('הוספת ילד חדש');
+        addChildBtn.onclick = () => window.showModal('הוספת ילד חדש'); // Use global showModal
     }
 });
 
-// Update global functions for children management
+// Global functions for children management
 window.editChild = function(childId) {
     const children = storage.get('children') || [];
     const child = children.find(c => c.id === childId);
     if (child) {
-        showModal('עריכת ילד', child);
+        window.showModal('עריכת ילד', child); // Use global showModal
     }
 };
 
