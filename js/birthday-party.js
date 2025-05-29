@@ -211,14 +211,4 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleChildSelect();
         eventTypeSelect.addEventListener('change', toggleChildSelect);
     }
-
-    // Location select logic
-    if (locationSelect) {
-        locationSelect.addEventListener('change', () => {
-            if (otherLocationDiv) {
-                 otherLocationDiv.style.display =
-                    locationSelect.value === 'other' ? 'block' : 'none';
-            }
-        });
-    }
 }); 

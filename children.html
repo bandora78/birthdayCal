@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>רשימת הילדים - מנהל אירועים בגן</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- הוספת Flatpickr ללוח שנה -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
 </head>
 <body>
     <header>
@@ -51,11 +54,42 @@
         </div>
     </main>
 
+    <!-- Modal לטופס הוספה/עריכת ילד -->
+    <div id="childFormModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">הוספת ילד חדש</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="childForm" class="child-form">
+                <input type="hidden" id="childId">
+                <div class="form-group">
+                    <label for="childName">שם הילד:</label>
+                    <input type="text" id="childName" required>
+                </div>
+                <div class="form-group">
+                    <label for="parentName">שם ההורה:</label>
+                    <input type="text" id="parentName" required>
+                </div>
+                <div class="form-group">
+                    <label for="birthDate">תאריך לידה:</label>
+                    <input type="text" id="birthDate" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="feature-button">שמור</button>
+                    <button type="button" class="cancel-button" onclick="closeModal()">ביטול</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <footer>
         <p>© 2024 מנהל אירועים בגן - כל הזכויות שמורות</p>
     </footer>
 
-    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/he.js"></script>
     <script src="js/children.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html> 

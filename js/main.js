@@ -1,21 +1,3 @@
-// Common utility functions
-const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('he-IL', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-};
-
-// Generate unique child ID for a specific garden
-function generateChildId(gardenId) {
-    const children = storage.get('children') || [];
-    const gardenChildren = children.filter(child => child.gardenId === gardenId);
-    return gardenChildren.length + 1; // Simple sequential number
-}
-
 // Storage helper
 const storage = {
     get: function(key) {
@@ -40,6 +22,13 @@ const storage = {
         this.set('isInitialized', true);
     }
 };
+
+// Generate unique child ID for a specific garden
+function generateChildId(gardenId) {
+    const children = storage.get('children') || [];
+    const gardenChildren = children.filter(child => child.gardenId === gardenId);
+    return gardenChildren.length + 1; // Simple sequential number
+}
 
 // Garden ID validation
 function isValidGardenId(gardenId) {
@@ -185,7 +174,7 @@ window.loadChildren = function() {
         tr.innerHTML = `
             <td>${child.name}</td>
             <td>${child.parentName}</td>
-            <td>${formatDate(child.birthDate)}</td>
+            <td>${window.formatDate(child.birthDate)}</td>
             <td>
                 <button onclick="editChild('${child.id}')" class="edit-btn">ערוך</button>
                 <button onclick="deleteChild('${child.id}')" class="delete-btn">מחק</button>
@@ -210,7 +199,7 @@ window.editChild = function(childId) {
     if (!newBirthDate) return;
 
     // Validate date format
-    if (!isValidDate(newBirthDate)) {
+    if (!window.isValidDate(newBirthDate)) {
         alert('תאריך לא תקין. אנא השתמש בפורמט YYYY-MM-DD');
         return;
     }
@@ -222,7 +211,7 @@ window.editChild = function(childId) {
     storage.set('children', children);
 
     // Reload children list
-    loadChildren();
+    window.loadChildren();
 };
 
 window.deleteChild = function(childId) {
@@ -233,5 +222,5 @@ window.deleteChild = function(childId) {
     storage.set('children', updatedChildren);
 
     // Reload children list
-    loadChildren();
+    window.loadChildren();
 }; 

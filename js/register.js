@@ -1,19 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Get form elements
     const kindergartenForm = document.getElementById('kindergartenRegistrationForm');
-    const registrationForm = document.getElementById('registrationForm');
-    const childrenContainer = document.getElementById('childrenContainer');
-    const addChildBtn = document.getElementById('addChildBtn');
     const gardenLinkSection = document.getElementById('gardenLinkSection');
     const childrenList = document.getElementById('childrenList');
-    const addChildForm = document.getElementById('addChildForm');
     const childrenTableBody = document.getElementById('childrenTableBody');
     const gardenIdDisplay = document.getElementById('gardenIdDisplay');
     const parentRegLink = document.getElementById('parentRegLink');
     const copyParentLinkBtn = document.getElementById('copyParentLinkBtn');
     const copyParentLinkMsg = document.getElementById('copyParentLinkMsg');
     
-    let childCount = 1;
     let currentGardenId = null;
     
     // Clear hash on load to prevent automatic redirection
@@ -87,27 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Store current garden ID in session storage
             sessionStorage.setItem('currentGardenId', gardenId);
             
-            // Show success message and garden link
-            kindergartenForm.style.display = 'none';
-            gardenLinkSection.style.display = 'block';
-            childrenList.style.display = 'block';
-            
-            // Display garden ID
-            gardenIdDisplay.textContent = gardenId;
-            
-            // Create and display parent registration link
-            const registrationLink = `${window.location.origin}/children.html?gardenId=${gardenId}`;
-            parentRegLink.value = registrationLink;
-            
-            // Copy link functionality
-            copyParentLinkBtn.addEventListener('click', () => {
-                parentRegLink.select();
-                document.execCommand('copy');
-                copyParentLinkMsg.style.display = 'block';
-                setTimeout(() => {
-                    copyParentLinkMsg.style.display = 'none';
-                }, 2000);
-            });
+            // Redirect to children page with the new garden ID
+            window.location.href = `children.html?gardenId=${gardenId}`;
         });
     }
 
@@ -124,7 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const parentLink = `${window.location.origin}/children.html?gardenId=${currentGardenId}`;
         parentRegLink.value = parentLink;
         
-        // Copy link functionality
+        // Hide form, show children list
+        kindergartenForm.style.display = 'none';
+        childrenList.style.display = 'block';
+        
+        // Load children for current garden
+        window.loadChildren();
+    }
+
+    // Copy link functionality (moved outside the conditions to avoid duplication)
+    if (copyParentLinkBtn) {
         copyParentLinkBtn.addEventListener('click', () => {
             parentRegLink.select();
             document.execCommand('copy');
@@ -133,95 +118,5 @@ document.addEventListener('DOMContentLoaded', () => {
                 copyParentLinkMsg.style.display = 'none';
             }, 2000);
         });
-        
-        // Hide form, show children list
-        kindergartenForm.style.display = 'none';
-        childrenList.style.display = 'block';
-        
-        // Load children for current garden
-        window.loadChildren();
     }
-});
-
-function generateGardenId() {
-    return Math.random().toString(36).substr(2, 8).toUpperCase();
-}
-
-// Global functions for children management
-window.loadChildren = function() {
-    const children = storage.get('children') || [];
-    const currentGardenId = sessionStorage.getItem('currentGardenId');
-    const gardenChildren = children.filter(child => child.gardenId === currentGardenId);
-    
-    const tbody = document.getElementById('childrenTableBody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-    gardenChildren.forEach(child => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${child.name}</td>
-            <td>${child.parentName}</td>
-            <td>${formatDate(child.birthDate)}</td>
-            <td>
-                <button onclick="editChild('${child.id}')" class="edit-btn">ערוך</button>
-                <button onclick="deleteChild('${child.id}')" class="delete-btn">מחק</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-};
-
-window.editChild = function(childId) {
-    const children = storage.get('children') || [];
-    const child = children.find(c => c.id === childId);
-    if (!child) return;
-
-    const newName = prompt('שם הילד:', child.name);
-    if (!newName) return;
-
-    const newParentName = prompt('שם ההורה:', child.parentName);
-    if (!newParentName) return;
-
-    const newBirthDate = prompt('תאריך לידה (YYYY-MM-DD):', child.birthDate);
-    if (!newBirthDate) return;
-
-    // Validate date format
-    if (!isValidDate(newBirthDate)) {
-        alert('תאריך לא תקין. אנא השתמש בפורמט YYYY-MM-DD');
-        return;
-    }
-
-    // Update child in storage
-    child.name = newName;
-    child.parentName = newParentName;
-    child.birthDate = newBirthDate;
-    storage.set('children', children);
-
-    // Reload children list
-    loadChildren();
-};
-
-window.deleteChild = function(childId) {
-    if (!confirm('האם אתה בטוח שברצונך למחוק את הילד?')) return;
-
-    const children = storage.get('children') || [];
-    const updatedChildren = children.filter(c => c.id !== childId);
-    storage.set('children', updatedChildren);
-
-    // Reload children list
-    loadChildren();
-};
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('he-IL');
-}
-
-function isValidDate(dateString) {
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dateString)) return false;
-    
-    const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date);
-} 
+}); 

@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
              }
         }
 
-        if (eventDateElement) eventDateElement.textContent = formatDate(event.date);
+        if (eventDateElement) eventDateElement.textContent = window.formatDate(event.date);
         if (eventLocationElement) eventLocationElement.textContent = event.location;
         if (eventNotesElement) eventNotesElement.textContent = event.notes || 'אין';
 
