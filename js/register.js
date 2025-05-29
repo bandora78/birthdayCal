@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Generate a unique garden ID (Supabase will generate UUID for id)
             // We still generate a unique gardenId for the link/session storage for now
-            const gardenId = window.generateGardenId(); 
+            const gardenId = generateGardenId();
             
             // Create new kindergarten object
             const newKindergarten = {
