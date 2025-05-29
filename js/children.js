@@ -1,5 +1,7 @@
 // This file handles the children list page logic
 
+console.log('children.js script started'); // Add log at the very beginning
+
 // Import necessary modules
 import { supabase } from './main.js';
 // import { storage } from './main.js'; // We will replace storage usage
