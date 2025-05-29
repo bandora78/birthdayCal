@@ -96,33 +96,12 @@
         <p>© 2024 מנהל אירועים בגן - כל הזכויות שמורות</p>
     </footer>
 
-    <script src="js/birthday-party.js"></script>
-    <script>
-        // Hamburger menu toggle handled in main.js
-
-        // Script to toggle child selection based on event type
-        document.addEventListener('DOMContentLoaded', () => {
-            const eventTypeSelect = document.getElementById('eventType');
-            const childSelectGroup = document.getElementById('childSelectGroup');
-            const childSelect = document.getElementById('childSelect');
-
-            function toggleChildSelect() {
-                if (eventTypeSelect.value === 'birthday') {
-                    childSelectGroup.style.display = 'block';
-                    childSelect.setAttribute('required', 'true');
-                } else {
-                    childSelectGroup.style.display = 'none';
-                    childSelect.removeAttribute('required');
-                }
-            }
-
-            // Initial check and event listener
-            toggleChildSelect();
-            eventTypeSelect.addEventListener('change', toggleChildSelect);
-
-             // Location select logic already in birthday-party.js
-        });
-    </script>
-    <script src="js/main.js"></script>
+    <!-- Add Flatpickr JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/he.js"></script>
+    <!-- Add Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="js/birthday-party.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html> 
