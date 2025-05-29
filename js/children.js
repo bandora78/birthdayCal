@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Load and display children
-    loadChildren();
+    window.loadChildren();
 
     // Add child button click handler
     const addChildBtn = document.getElementById('addChildBtn');
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             storage.set('children', children);
 
             // Reload children list
-            loadChildren();
+            window.loadChildren();
         };
     }
 });

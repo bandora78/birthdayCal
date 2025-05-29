@@ -29,14 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
             childrenList.style.display = 'block';
             const lastKindergarten = kindergartens[kindergartens.length - 1];
             currentGardenId = lastKindergarten.gardenId;
+            sessionStorage.setItem('currentGardenId', currentGardenId);
             
             // Show garden ID in admin mode
-            document.getElementById('gardenLinkSection').style.display = 'block';
-            document.getElementById('gardenIdDisplay').textContent = currentGardenId;
-            const parentLink = `${window.location.origin}${window.location.pathname}?gardenId=${currentGardenId}`;
-            document.getElementById('parentRegLink').value = parentLink;
+            gardenLinkSection.style.display = 'block';
+            gardenIdDisplay.textContent = currentGardenId;
+            const parentLink = `${window.location.origin}/children.html?gardenId=${currentGardenId}`;
+            parentRegLink.value = parentLink;
             
-            loadChildren(currentGardenId);
+            loadChildren();
         } else {
             alert('יש להשלים קודם את רישום הגן');
             window.location.href = 'register.html';
@@ -110,70 +111,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load and display children for a specific gardenId
-    function loadChildren(gardenId) {
-        const children = (storage.get('children') || []).filter(c => c.gardenId === gardenId);
-        childrenTableBody.innerHTML = '';
-        children.forEach(child => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${child.name}</td>
-                <td>${child.childId}</td>
-                <td>${new Date(child.birthDate).toLocaleDateString('he-IL')}</td>
-                <td>${child.parentName || '-'}</td>
-                <td>
-                    <button onclick="deleteChild(${child.id})" class="delete-btn">מחק</button>
-                </td>
-            `;
-            childrenTableBody.appendChild(row);
-        });
-    }
-
-    // Delete child function (admin only)
-    window.deleteChild = (childId) => {
-        let children = storage.get('children') || [];
-        children = children.filter(child => child.id !== childId);
-        storage.set('children', children);
-        
-        if (!currentGardenId) {
-            // Get last kindergarten for admin mode
-            const kindergartens = storage.get('kindergartens') || [];
-            const lastKindergarten = kindergartens[kindergartens.length - 1];
-            if (lastKindergarten) currentGardenId = lastKindergarten.gardenId;
-        }
-        
-        loadChildren(currentGardenId);
-    };
-
     // Check if kindergarten is already registered (admin mode)
     const kindergartens = storage.get('kindergartens') || [];
     if (kindergartens.length > 0 && !gardenIdFromUrl && !window.location.hash) {
         const lastKindergarten = kindergartens[kindergartens.length - 1];
         currentGardenId = lastKindergarten.gardenId;
+        sessionStorage.setItem('currentGardenId', currentGardenId);
         
         // Show garden ID and parent link
-        document.getElementById('gardenLinkSection').style.display = 'block';
-        document.getElementById('gardenIdDisplay').textContent = currentGardenId;
-        const parentLink = `${window.location.origin}${window.location.pathname}?gardenId=${currentGardenId}`;
-        document.getElementById('parentRegLink').value = parentLink;
-        document.getElementById('copyParentLinkBtn').onclick = function() {
-            navigator.clipboard.writeText(parentLink).then(() => {
-                document.getElementById('copyParentLinkMsg').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('copyParentLinkMsg').style.display = 'none';
-                }, 1500);
-            });
-        };
+        gardenLinkSection.style.display = 'block';
+        gardenIdDisplay.textContent = currentGardenId;
+        const parentLink = `${window.location.origin}/children.html?gardenId=${currentGardenId}`;
+        parentRegLink.value = parentLink;
+        
+        // Copy link functionality
+        copyParentLinkBtn.addEventListener('click', () => {
+            parentRegLink.select();
+            document.execCommand('copy');
+            copyParentLinkMsg.style.display = 'block';
+            setTimeout(() => {
+                copyParentLinkMsg.style.display = 'none';
+            }, 2000);
+        });
         
         // Hide form, show children list
         kindergartenForm.style.display = 'none';
         childrenList.style.display = 'block';
         
-        // Prepend add new garden button
-        childrenList.prepend(addChildBtn);
-        
         // Load children for current garden
-        loadChildren(currentGardenId);
+        loadChildren();
     }
 });
 
@@ -181,7 +147,8 @@ function generateGardenId() {
     return Math.random().toString(36).substr(2, 8).toUpperCase();
 }
 
-function loadChildren() {
+// Global functions for children management
+window.loadChildren = function() {
     const children = storage.get('children') || [];
     const currentGardenId = sessionStorage.getItem('currentGardenId');
     const gardenChildren = children.filter(child => child.gardenId === currentGardenId);
@@ -203,9 +170,8 @@ function loadChildren() {
         `;
         tbody.appendChild(tr);
     });
-}
+};
 
-// Make these functions global
 window.editChild = function(childId) {
     const children = storage.get('children') || [];
     const child = children.find(c => c.id === childId);
