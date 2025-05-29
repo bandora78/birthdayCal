@@ -1,5 +1,11 @@
 // This file handles the events calendar and details logic
 
+// Import necessary modules
+import { supabase } from './main.js';
+// import { storage } from './main.js'; // We will replace storage usage
+import { formatDate } from './main.js'; // Import formatDate
+import { generateId } from './main.js'; // Import generateId for new attendance records
+
 // Global variables
 let currentDate = new Date();
 let currentGardenId = null;
@@ -10,7 +16,7 @@ let currentMonthElement;
 let prevMonthBtn;
 let nextMonthBtn;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Initialize DOM element references
     calendarGrid = document.getElementById('calendarGrid');
     currentMonthElement = document.getElementById('currentMonth');
@@ -75,20 +81,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Handle event type change in modal
-    editEventTypeSelect.addEventListener('change', () => {
+    editEventTypeSelect.addEventListener('change', async () => {
         if (editEventTypeSelect.value === 'birthday') {
             editChildSelectGroup.style.display = 'block';
              // Load children if not already loaded
             if (editChildSelect.options.length <= 1) { // Check if only default option exists
                 const currentGardenId = sessionStorage.getItem('currentGardenId'); // Get current garden id
-                const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-                editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
-                 children.forEach(child => {
-                    const option = document.createElement('option');
-                    option.value = child.id;
-                    option.textContent = `${child.name} (מזהה: ${child.id})`;
-                    editChildSelect.appendChild(option);
-                });
+                
+                if (currentGardenId) {
+                    const { data: children, error } = await supabase
+                        .from('children')
+                        .select('id, name')
+                        .eq('garden_id', currentGardenId);
+
+                    if (error) {
+                        console.error('Error fetching children:', error);
+                        alert('שגיאה בטעינת רשימת הילדים.');
+                    } else {
+                        editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
+                         children.forEach(child => {
+                            const option = document.createElement('option');
+                            option.value = child.id;
+                            option.textContent = `${child.name} (מזהה: ${child.id})`;
+                            editChildSelect.appendChild(option);
+                        });
+                    }
+                } else {
+                    console.warn('Cannot load children: Garden ID not available.');
+                }
             }
         } else {
             editChildSelectGroup.style.display = 'none';
@@ -102,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle event form modal submission
-    eventFormModalContent.addEventListener('submit', (e) => {
+    eventFormModalContent.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const eventId = editEventIdInput.value;
@@ -111,33 +131,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const eventDate = editEventDateInput.value;
         const location = editLocationSelect.value === 'kindergarten' ? 'בגן' : editOtherLocationInput.value;
         const notes = editNotesInput.value;
+        const currentGardenId = sessionStorage.getItem('currentGardenId');
 
         if (eventType === 'birthday' && !childId) {
             alert('אנא בחר ילד עבור אירוע יום הולדת');
             return;
         }
+        
+        if (!currentGardenId) {
+             alert('שגיאה: מזהה גן לא זמין.');
+             console.error('Garden ID is null when submitting event form.');
+             return;
+        }
 
-        const events = storage.get('events') || [];
-        const eventIndex = events.findIndex(ev => String(ev.id) === String(eventId));
+        // Data structure for Supabase insert/update
+        const eventDataToSave = {
+            type: eventType,
+            child_id: childId,
+            date: eventDate, // Supabase expects ISO 8601 format for timestamp/date types
+            location: location,
+            notes: notes,
+            garden_id: currentGardenId // Link event to the current garden
+        };
 
-        if (eventIndex !== -1) {
+        if (eventId) {
             // Update existing event
-            events[eventIndex] = {
-                ...events[eventIndex],
-                type: eventType,
-                childId: childId,
-                date: eventDate,
-                location: location,
-                notes: notes
-            };
-            storage.set('events', events);
-            alert('האירוע עודכן בהצלחה!');
-            window.closeEventModal(); // Use global function
-            renderCalendar(); // Re-render calendar to show updated event
-            window.closeEventDetails(); // Use global function
+            const { data, error } = await supabase
+                .from('events')
+                .update(eventDataToSave)
+                .eq('id', eventId);
+
+            if (error) {
+                console.error('Error updating event:', error);
+                alert('שגיאה בעדכון האירוע.');
+            } else {
+                alert('האירוע עודכן בהצלחה!');
+                window.closeEventModal();
+                renderCalendar(); // Re-render calendar to show updated event
+                window.closeEventDetails(); // Close details as they might be outdated
+            }
         } else {
-             // This case should ideally not happen with current flow, but good to have
-             console.error('Event not found for update');
+             // This branch should ideally not be reachable with current flow (events are created via addEvent function)
+             // If we were adding events via the modal, we would use insert here.
+             console.error('Attempted to save event without an ID. Use addEvent function for new events.');
+             alert('שגיאה: נסיון לשמור אירוע חדש דרך טופס העריכה.');
         }
     });
 
@@ -147,41 +184,93 @@ document.addEventListener('DOMContentLoaded', () => {
     // Support direct eventId navigation and show details
     const eventIdParam = urlParams.get('eventId');
     if (eventIdParam) {
-        const events = storage.get('events') || [];
-        const event = events.find(ev => String(ev.id) === String(eventIdParam) && ev.gardenId === currentGardenId);
-        if (event) {
-            window.showEventDetails(event); // Use global function
-            setTimeout(() => {
-                const eventDetailsElement = document.getElementById('eventDetails');
-                 if(eventDetailsElement) eventDetailsElement.scrollIntoView({behavior: 'smooth'});
-            }, 200);
-        }
+        const currentGardenId = sessionStorage.getItem('currentGardenId');
+        if (currentGardenId) {
+             const { data: events, error } = await supabase
+                 .from('events')
+                 .select('*, children(name)') // Select event fields and join with children table to get child name
+                 .eq('id', eventIdParam)
+                 .eq('garden_id', currentGardenId)
+                 .single(); // Expecting a single event
+
+             if (error) {
+                 console.error('Error fetching event for direct link:', error);
+                 alert('שגיאה בטעינת האירוע.');
+             } else if (events) {
+                 // event data structure from Supabase will be slightly different
+                 // need to map it to the structure showEventDetails expects or update showEventDetails
+                 // assuming showEventDetails expects { id, type, childId, date, location, notes, attendance: [...] }
+                 // Supabase gives us { id, type, child_id, date, location, notes, garden_id, children: { name } }
+
+                 // Fetch attendance separately
+                 const { data: attendance, error: attendanceError } = await supabase
+                     .from('attendance')
+                     .select('*')
+                     .eq('event_id', eventIdParam);
+
+                 if (attendanceError) {
+                     console.error('Error fetching attendance for direct link:', attendanceError);
+                     // Proceed without attendance data if there's an error
+                 }
+
+                 const eventWithAttendance = {
+                     id: events.id,
+                     type: events.type,
+                     childId: events.child_id, // Supabase uses child_id, our JS uses childId
+                     date: events.date, // Keep ISO format for showEventDetails if it handles it
+                     location: events.location,
+                     notes: events.notes,
+                     gardenId: events.garden_id,
+                     childName: events.children ? events.children.name : null, // Get child name from joined data
+                     attendance: attendance || [] // Attach fetched attendance data
+                 };
+
+                 window.showEventDetails(eventWithAttendance); // Use global function
+                 setTimeout(() => {
+                     const eventDetailsElement = document.getElementById('eventDetails');
+                      if(eventDetailsElement) eventDetailsElement.scrollIntoView({behavior: 'smooth'});
+                 }, 200);
+             }
+         } else {
+             console.warn('Garden ID not available for direct event link.');
+         }
     }
 
     // Show garden name and copy link
-    const kindergartens = storage.get('kindergartens') || [];
-    const currentGarden = kindergartens.find(k => k.gardenId === currentGardenId);
-    if (currentGarden) {
-        const gardenNameDisplay = document.getElementById('gardenNameDisplay');
-        if(gardenNameDisplay) {
-             gardenNameDisplay.textContent = `שם הגן: ${currentGarden.name}`;
-        }
+    // Fetch garden name from Supabase
+    const currentGardenIdForDisplay = sessionStorage.getItem('currentGardenId');
+    if (currentGardenIdForDisplay) {
+        const { data: currentGarden, error: gardenError } = await supabase
+            .from('kindergartens')
+            .select('name')
+            .eq('garden_id', currentGardenIdForDisplay)
+            .single();
 
-        // The parentRegLink input should probably be for the children registration page
-        const parentRegLinkInput = document.getElementById('parentRegLink');
-        if(parentRegLinkInput) {
-             parentRegLinkInput.value = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+        if (gardenError) {
+            console.error('Error fetching garden name:', gardenError);
+            // Handle error
+        } else if (currentGarden) {
+            const gardenNameDisplay = document.getElementById('gardenNameDisplay');
+            if(gardenNameDisplay) {
+                 gardenNameDisplay.textContent = `שם הגן: ${currentGarden.name}`;
+            }
         }
+    }
 
-        const copyBtn = document.getElementById('copyGardenLinkBtn');
-        if (copyBtn) {
-            copyBtn.onclick = function() {
-                const registrationLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
-                const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${registrationLink}`;
-                const waUrl = `https://wa.me/?text=${msg}`;
-                window.open(waUrl, '_blank');
-            };
-        }
+    // The parentRegLink input should probably be for the children registration page
+    const parentRegLinkInput = document.getElementById('parentRegLink');
+    if(parentRegLinkInput) {
+         parentRegLinkInput.value = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+    }
+
+    const copyBtn = document.getElementById('copyGardenLinkBtn');
+    if (copyBtn) {
+        copyBtn.onclick = function() {
+            const registrationLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+            const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${registrationLink}`;
+            const waUrl = `https://wa.me/?text=${msg}`;
+            window.open(waUrl, '_blank');
+        };
     }
 
     // Add event listeners for edit and delete buttons after showEventDetails is called
@@ -251,7 +340,49 @@ window.showEventModal = function(title, eventData = null) {
         editEventIdInput.value = eventData.id;
         editEventTypeSelect.value = eventData.type;
 
-        // Load children for birthday event type
+        // Handle child select for birthday
+        if (eventData.type === 'birthday') {
+            editChildSelectGroup.style.display = 'block';
+            // Load children if not already loaded and select the correct child
+            // This part is already handled in the DOMContentLoaded listener for the change event
+            // We just need to set the value here
+            // A slight delay might be needed to ensure children are loaded before setting the value
+            setTimeout(() => {
+                 editChildSelect.value = eventData.childId;
+            }, 100);
+
+        } else {
+            editChildSelectGroup.style.display = 'none';
+             editChildSelect.value = ''; // Clear child selection for non-birthdays
+        }
+
+        // Set date using Flatpickr instance
+        if (eventDatePickerInstance) {
+             // Flatpickr expects a Date object or string in its configured format
+             // Convert Supabase ISO string to Date object or YYYY-MM-DD string
+             eventDatePickerInstance.setDate(eventData.date);
+        }
+
+        // Handle location
+        if (eventData.location === 'בגן') {
+            editLocationSelect.value = 'kindergarten';
+            editOtherLocationDiv.style.display = 'none';
+            editOtherLocationInput.value = '';
+        } else {
+            editLocationSelect.value = 'other';
+            editOtherLocationDiv.style.display = 'block';
+            editOtherLocationInput.value = eventData.location;
+        }
+
+        editNotesInput.value = eventData.notes;
+
+    } else {
+        // Reset form for adding new event (though new events are added via addEvent)
+        editEventIdInput.value = ''; // Clear ID for new events
+        editEventTypeSelect.value = 'birthday'; // Default to birthday for new events
+        editChildSelectGroup.style.display = 'block'; // Show child select for default type
+        editChildSelect.innerHTML = ''; // Clear children options
+        // Load children for new event
         const currentGardenId = sessionStorage.getItem('currentGardenId'); // Get current garden id
         const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
         editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
@@ -261,43 +392,9 @@ window.showEventModal = function(title, eventData = null) {
             option.textContent = `${child.name} (מזהה: ${child.id})`;
             editChildSelect.appendChild(option);
         });
-
-        if (eventData.type === 'birthday') {
-            editChildSelectGroup.style.display = 'block';
-            editChildSelect.value = eventData.childId || '';
-        } else {
-            editChildSelectGroup.style.display = 'none';
+        if (eventDatePickerInstance) { // Check if eventDatePicker exists
+            eventDatePickerInstance.clear();
         }
-
-         if (eventDatePickerInstance && eventData.date) { // Check if eventDatePicker exists and date is provided
-            eventDatePickerInstance.setDate(eventData.date);
-        }
-
-        editLocationSelect.value = eventData.location === 'בגן' ? 'kindergarten' : 'other';
-        if (eventData.location !== 'בגן' && eventData.location !== '') {
-            editOtherLocationDiv.style.display = 'block';
-            editOtherLocationInput.value = eventData.location;
-        }
-        editNotesInput.value = eventData.notes || '';
-    } else {
-         // For new event (though currently only editing is implemented via modal)
-         editEventIdInput.value = '';
-         editEventTypeSelect.value = 'birthday'; // Default to birthday for new events
-         editChildSelectGroup.style.display = 'block'; // Show child select for default type
-         editChildSelect.innerHTML = ''; // Clear children options
-         // Load children for new event
-         const currentGardenId = sessionStorage.getItem('currentGardenId'); // Get current garden id
-         const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-         editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
-         children.forEach(child => {
-             const option = document.createElement('option');
-             option.value = child.id;
-             option.textContent = `${child.name} (מזהה: ${child.id})`;
-             editChildSelect.appendChild(option);
-         });
-         if (eventDatePickerInstance) { // Check if eventDatePicker exists
-             eventDatePickerInstance.clear();
-         }
     }
 
     eventFormModal.style.display = 'block';
@@ -320,114 +417,246 @@ window.closeEventModal = function() {
 };
 
 // Delete event function (Global)
-window.deleteEvent = function(eventId) {
-    if (confirm('האם אתה בטוח שברצונך למחוק את האירוע?')) {
-        const events = storage.get('events') || [];
-        const updatedEvents = events.filter(event => String(event.id) !== String(eventId));
-        storage.set('events', updatedEvents);
+window.deleteEvent = async function(eventId) {
+    if (!confirm('האם אתה בטוח שברצונך למחוק אירוע זה?')) {
+        return;
+    }
+
+     if (!eventId) {
+         console.error('Cannot delete event: Event ID missing.');
+         alert('שגיאה במחיקת אירוע: מזהה אירוע חסר.');
+         return;
+     }
+
+    const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', eventId);
+
+    if (error) {
+        console.error('Error deleting event:', error);
+        alert('שגיאה במחיקת האירוע.');
+    } else {
         alert('האירוע נמחק בהצלחה!');
-        // Re-render calendar and hide details section after deletion
-        const calendarGrid = document.getElementById('calendarGrid');
-        if (calendarGrid && calendarGrid._eventCalendar) { // Check if calendar instance exists
-             calendarGrid._eventCalendar.renderCalendar();
-        } else {
-            // Fallback if calendar instance not stored, re-init or reload
-             // window.initCalendar(); // If initCalendar is global and safe to call multiple times
-             // Or simply reload the page if complex re-rendering is difficult
-             window.location.reload(); // Simple reload for now
-        }
-        window.closeEventDetails(); // Use global function
+        renderCalendar(); // Re-render calendar
+        window.closeEventDetails(); // Close details section
     }
 };
 
 // Keep showEventDetails globally accessible as it's called from renderCalendar
-window.showEventDetails = function(event) {
-    const eventDetails = document.getElementById('eventDetails');
-    const attendanceTableBody = document.getElementById('attendanceTableBody');
-    const eventChildNameElement = document.getElementById('eventChildName');
+window.showEventDetails = async function(event) {
+    const eventDetailsElement = document.getElementById('eventDetails');
+    const eventTitleElement = document.getElementById('eventTitle');
     const eventDateElement = document.getElementById('eventDate');
     const eventLocationElement = document.getElementById('eventLocation');
     const eventNotesElement = document.getElementById('eventNotes');
-    const eventTypeTextElement = document.getElementById('eventTypeText');
+    const attendanceFormElement = document.getElementById('attendanceForm');
+    const attendanceTableBodyElement = document.getElementById('attendanceTableBody');
+    const attendanceStatusSelectElement = document.getElementById('attendanceStatus');
+    const attendanceNotesInput = document.getElementById('attendanceNotes');
+    const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
 
-    // Ensure elements exist before accessing
-    if (!eventDetails || !attendanceTableBody || !eventChildNameElement || !eventDateElement || !eventLocationElement || !eventNotesElement || !eventTypeTextElement) {
-        console.error("One or more event details elements not found!");
-        return;
+    if (!eventDetailsElement || !eventTitleElement || !eventDateElement || !eventLocationElement || !eventNotesElement || !attendanceFormElement || !attendanceTableBodyElement || !attendanceStatusSelectElement || !attendanceNotesInput || !saveAttendanceBtn) {
+        console.error('One or more event details elements not found.');
+        return; // Exit if essential elements are missing
     }
 
-    // Store the currently viewed event ID using a data attribute on the details section
-    eventDetails.dataset.currentEventId = event.id;
+    // Store the current event ID on the details element for edit/delete
+    eventDetailsElement.dataset.currentEventId = event.id;
 
-    // Reset child name display
-    eventChildNameElement.textContent = '';
+    // Display event details
+    let title = '';
+    let childName = '';
 
-    // Display child name only if it's a birthday party
-    if (event.type === 'birthday' && event.childId) {
-        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-        const child = children.find(c => c.id === event.childId);
-        if (child) {
-            eventChildNameElement.textContent = child.name;
+    if (event.type === 'birthday') {
+        // If event object already has childName (from direct link fetch with join)
+        if (event.childName) {
+             childName = event.childName;
+        } else if (event.childId) {
+            // Fetch child name if not already available
+            const { data: child, error: childError } = await supabase
+                .from('children')
+                .select('name')
+                .eq('id', event.childId)
+                .single();
+
+            if (childError) {
+                console.error('Error fetching child name for birthday:', childError);
+                childName = 'שגיאה בטעינת שם הילד';
+            } else if (child) {
+                childName = child.name;
+            }
         }
+        title = `יום הולדת ${childName}`; // Use fetched or available child name
+    } else {
+        title = 'אירוע כללי';
     }
 
-    // Display event type
-    eventTypeTextElement.textContent = event.type === 'birthday' ? 'יום הולדת' : 'אחר';
+    eventTitleElement.textContent = title;
+    
+    // Format date using imported function
+    eventDateElement.textContent = `תאריך: ${formatDate(new Date(event.date))}`;
 
-    // Format and display date
-    const eventDate = new Date(event.date);
-    eventDateElement.textContent = eventDate.toLocaleDateString('he-IL', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    eventLocationElement.textContent = `מיקום: ${event.location}`;
+    eventNotesElement.textContent = `הערות: ${event.notes || 'אין'}`;
 
-    eventLocationElement.textContent = event.location;
-    eventNotesElement.textContent = event.notes || 'אין';
+    // Load and display attendance
+    await loadAttendance(event);
 
-    // Initialize attendance array if it doesn't exist
-    if (!event.attendance) {
-        event.attendance = [];
-    }
+    // Handle attendance form submission
+    // Remove previous listener if any to prevent duplicates
+    const newAttendanceFormElement = attendanceFormElement.cloneNode(true);
+    attendanceFormElement.parentNode.replaceChild(newAttendanceFormElement, attendanceFormElement);
+    const finalAttendanceFormElement = document.getElementById('attendanceForm'); // Get reference to the new form
 
-    // Show attendance section
-    eventDetails.style.display = 'block';
-    loadAttendance(event);
+    finalAttendanceFormElement.onsubmit = async (e) => {
+        e.preventDefault();
+        const status = attendanceStatusSelectElement.value;
+        const notes = attendanceNotesInput.value;
+        const eventId = eventDetailsElement.dataset.currentEventId;
 
-    // Scroll to event details
-    eventDetails.scrollIntoView({ behavior: 'smooth' });
+        if (!eventId) {
+            console.error('Cannot save attendance: Event ID not found.');
+            alert('שגיאה בשמירת אישור הגעה: מזהה אירוע חסר.');
+            return;
+        }
+
+        const currentGardenId = sessionStorage.getItem('currentGardenId');
+        if (!currentGardenId) {
+             console.error('Cannot save attendance: Garden ID not found.');
+             alert('שגיאה בשמירת אישור הגעה: מזהה גן חסר.');
+             return;
+        }
+
+        // Check if an attendance record already exists for this garden and event
+        const { data: existingAttendance, error: fetchError } = await supabase
+            .from('attendance')
+            .select('id')
+            .eq('garden_id', currentGardenId)
+            .eq('event_id', eventId)
+            .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means no rows found (this is expected if no record exists)
+            console.error('Error checking existing attendance:', fetchError);
+            alert('שגיאה בשמירת אישור הגעה.');
+            return;
+        }
+
+        const attendanceDataToSave = {
+            garden_id: currentGardenId,
+            event_id: eventId,
+            status: status,
+            notes: notes
+            // Add created_at/updated_at if needed in table schema
+        };
+
+        if (existingAttendance) {
+            // Update existing record
+            const { data, error } = await supabase
+                .from('attendance')
+                .update(attendanceDataToSave)
+                .eq('id', existingAttendance.id);
+
+            if (error) {
+                console.error('Error updating attendance:', error);
+                alert('שגיאה בעדכון אישור הגעה.');
+            } else {
+                alert('אישור ההגעה עודכן בהצלחה!');
+                loadAttendance(event); // Reload attendance table
+            }
+        } else {
+            // Insert new record
+            // Supabase should generate the ID, but if not, we might use generateId()
+             const { data, error } = await supabase
+                 .from('attendance')
+                 .insert([attendanceDataToSave]); // insert expects an array
+
+            if (error) {
+                console.error('Error inserting attendance:', error);
+                alert('שגיאה בהוספת אישור הגעה.');
+            } else {
+                alert('אישור ההגעה נשמר בהצלחה!');
+                loadAttendance(event); // Reload attendance table
+            }
+        }
+    };
+
+    // Show details section
+    eventDetailsElement.style.display = 'block';
+
+    // Scroll to details section
+    eventDetailsElement.scrollIntoView({ behavior: 'smooth' });
 };
 
 // Global function to close event details section (called from deleteEvent)
 window.closeEventDetails = function() {
-    const eventDetails = document.getElementById('eventDetails');
-    if (eventDetails) eventDetails.style.display = 'none';
+    const eventDetailsElement = document.getElementById('eventDetails');
+    if (eventDetailsElement) {
+        eventDetailsElement.style.display = 'none';
+        // Clear data from details section?
+        // Optional: clear attendance form/table
+    }
 };
 
 // Load attendance list
-function loadAttendance(event) {
-    const attendanceTableBody = document.getElementById('attendanceTableBody');
-    if (!attendanceTableBody) return; // Ensure element exists
+async function loadAttendance(event) {
+    const attendanceTableBodyElement = document.getElementById('attendanceTableBody');
+    if (!attendanceTableBodyElement) return;
 
-    attendanceTableBody.innerHTML = '';
+    attendanceTableBodyElement.innerHTML = ''; // Clear current table
 
-    event.attendance.forEach(attendance => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${attendance.parentName}</td>
-            <td>${attendance.childName}</td>
-            <td>${getAttendanceStatusText(attendance.status)}</td>
-        `;
-        attendanceTableBody.appendChild(row);
-    });
+    if (!event || !event.id) {
+         console.warn('Cannot load attendance: Event object or ID missing.');
+         return;
+    }
+
+    const currentGardenId = sessionStorage.getItem('currentGardenId');
+     if (!currentGardenId) {
+         console.warn('Cannot load attendance: Garden ID missing.');
+         return;
+     }
+
+    // Fetch attendance records for the event, including garden name
+    const { data: attendanceRecords, error } = await supabase
+        .from('attendance')
+        .select('*, kindergartens(name)') // Select all attendance fields and join with kindergartens table to get garden name
+        .eq('event_id', event.id);
+
+    if (error) {
+        console.error('Error fetching attendance records:', error);
+        // Show error message in table
+        const row = attendanceTableBodyElement.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 3; // Span across status, garden, notes
+        cell.textContent = 'שגיאה בטעינת אישורי הגעה.';
+        return;
+    }
+
+    if (attendanceRecords && attendanceRecords.length > 0) {
+        attendanceRecords.forEach(record => {
+            const row = attendanceTableBodyElement.insertRow();
+            const statusCell = row.insertCell();
+            const gardenCell = row.insertCell();
+            const notesCell = row.insertCell();
+
+            statusCell.textContent = getAttendanceStatusText(record.status);
+            gardenCell.textContent = record.kindergartens ? record.kindergartens.name : 'לא ידוע'; // Display garden name
+            notesCell.textContent = record.notes || '';
+        });
+    } else {
+        const row = attendanceTableBodyElement.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 3;
+        cell.textContent = 'אין אישורי הגעה עדיין.';
+    }
 }
 
 // Get attendance status text
 function getAttendanceStatusText(status) {
     switch (status) {
-        case 'yes': return 'יגיע';
-        case 'no': return 'לא יגיע';
-        case 'maybe': return 'אולי יגיע';
+        case 'coming': return 'מגיע/ה';
+        case 'not-coming': return 'לא מגיע/ה';
+        case 'maybe': return 'אולי';
         default: return status;
     }
 }
@@ -477,9 +706,16 @@ function initCalendar() {
 }
 
 // Render calendar for current month
-function renderCalendar() {
+async function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
+    const currentGardenId = sessionStorage.getItem('currentGardenId'); // Get current garden ID from session
+
+    if (!currentGardenId) {
+        console.warn('Cannot render calendar: Garden ID not available.');
+        // Optionally redirect or show a message
+        return;
+    }
     
     // Set current month title
     currentMonthElement.textContent = new Date(year, month).toLocaleDateString('he-IL', { 
@@ -512,13 +748,23 @@ function renderCalendar() {
         calendarGrid.appendChild(emptyDay);
     }
 
-    // Get events for current month
-    const events = (storage.get('events') || []).filter(event => {
-        const eventDate = new Date(event.date);
-        return event.gardenId === currentGardenId &&
-               eventDate.getFullYear() === year &&
-               eventDate.getMonth() === month;
-    });
+    // Get events for current month from Supabase
+    // Filter by garden_id and date range for the current month
+    const startOfMonth = new Date(year, month, 1).toISOString();
+    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString(); // End of the last day
+
+    const { data: events, error } = await supabase
+        .from('events')
+        .select('id, type, child_id, date, location, notes, garden_id') // Select necessary fields
+        .eq('garden_id', currentGardenId) // Filter by current garden
+        .gte('date', startOfMonth) // Greater than or equal to start of month
+        .lte('date', endOfMonth); // Less than or equal to end of month
+
+    if (error) {
+        console.error('Error fetching events:', error);
+        // Handle error - maybe show an alert or message on the calendar
+        return;
+    }
 
     // Add days
     for (let day = 1; day <= totalDays; day++) {
@@ -526,7 +772,7 @@ function renderCalendar() {
         dayElement.className = 'calendar-day';
         dayElement.textContent = day;
 
-        // Check if current day has events
+        // Check if current day has events (from fetched events)
         const dayEvents = events.filter(event => {
             const eventDate = new Date(event.date);
             return eventDate.getDate() === day;
@@ -545,8 +791,9 @@ function renderCalendar() {
             });
 
             // Add click event to show details
+            // Pass the first event of the day to showEventDetails
             dayElement.addEventListener('click', () => {
-                showEventDetails(dayEvents[0]);
+                window.showEventDetails(dayEvents[0]); // Use global showEventDetails
             });
         }
 
