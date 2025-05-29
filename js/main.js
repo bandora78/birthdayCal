@@ -6,7 +6,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Initialize Supabase client immediately
 export const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Storage helper
+// Storage helper (keeping for now, though moving towards Supabase)
 const storage = {
     get: function(key) {
         const value = localStorage.getItem(key);
@@ -31,43 +31,57 @@ const storage = {
     }
 };
 
-// Generate unique child ID for a specific garden
-function generateChildId(gardenId) {
-    const children = storage.get('children') || [];
-    const gardenChildren = children.filter(child => child.gardenId === gardenId);
-    return gardenChildren.length + 1; // Simple sequential number
+// Make clearStorage globally accessible
+window.clearStorage = storage.clear.bind(storage);
+
+// Global function to exit the current garden
+window.exitGarden = function() {
+    if (confirm('האם אתה בטוח שברצונך לצאת מהגן?')) {
+        sessionStorage.removeItem('currentGardenId');
+        // Redirect to the home page after exiting
+        window.location.href = 'index.html';
+    }
+};
+
+// Helper function to format date (DD/MM/YYYY)
+export function formatDate(dateString) {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
 }
 
-// Garden ID validation
-function isValidGardenId(gardenId) {
-    return gardenId && gardenId.length === 8;
+// Helper function to validate date format (YYYY-MM-DD)
+export function isValidDate(dateString) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) return false;
+    const date = new Date(dateString);
+    const [year, month, day] = dateString.split('-').map(Number);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
-// Debug helper
-function debugStorage() {
-    console.log('Kindergartens:', storage.get('kindergartens'));
-    console.log('Children:', storage.get('children'));
-    console.log('Current Garden ID:', sessionStorage.getItem('currentGardenId'));
+// Helper function to generate a simple unique ID (client-side, for temporary use before Supabase insert)
+export function generateId() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('main.js DOMContentLoaded fired.'); // Log when main.js DOMContentLoaded starts
+// Helper function to generate a garden ID (not used anymore with Supabase UUIDs, but keeping for reference/cleanup)
+export function generateGardenId() {
+     // This is the old 8-character logic, no longer needed for Supabase UUIDs
+    return Math.random().toString(36).substring(2, 10).toUpperCase();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('main.js DOMContentLoaded fired.');
     
-    // Check if this is the first visit
+    // Initialize storage if not already done (for backward compatibility or local testing)
     if (!storage.get('isInitialized')) {
-        console.log('Storage not initialized, performing initial setup.'); // Log if initialization is needed
-        // Initialize storage with empty data structures
-        storage.set('kindergartens', []);
-        storage.set('children', []);
-        storage.set('events', []);
-        storage.set('isInitialized', true);
-        console.log('Storage initialized.'); // Log after initialization
+        console.log('Storage not initialized, performing initial setup.');
+        storage.clear(); // This also sets isInitialized to true
     } else {
-        console.log('Storage already initialized.'); // Log if storage is already initialized
+        console.log('Storage already initialized.');
     }
 
-    // Hamburger menu toggle
+    // Hamburger menu toggle (keeping for now)
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const navList = document.getElementById('navList');
 
@@ -79,46 +93,48 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Show/hide navigation links based on garden connection
+    // Show/hide navigation links and sections based on garden connection status
     const currentGardenId = sessionStorage.getItem('currentGardenId');
     const registerGardenLink = document.getElementById('registerGardenLink');
     const childrenListLink = document.getElementById('childrenListLink');
+    const gardenEntrySection = document.getElementById('gardenEntrySection');
+    const newGardenSection = document.getElementById('newGardenSection');
+    const gardenExitSection = document.getElementById('gardenExitSection');
+    const gardenInfoAndLink = document.getElementById('gardenInfoAndLink');
 
     if (currentGardenId) {
         // User is connected to a garden
         if (registerGardenLink) registerGardenLink.style.display = 'none';
-        if (childrenListLink) childrenListLink.style.display = 'list-item'; // Or 'block', etc. depending on your CSS
-
-        // Hide garden entry and new garden sections, show exit button
-        const gardenEntrySection = document.getElementById('gardenEntrySection');
-        const newGardenSection = document.getElementById('newGardenSection');
-        const gardenExitSection = document.getElementById('gardenExitSection');
-        
+        if (childrenListLink) childrenListLink.style.display = 'list-item';
         if (gardenEntrySection) gardenEntrySection.style.display = 'none';
         if (newGardenSection) newGardenSection.style.display = 'none';
-        if (gardenExitSection) gardenExitSection.style.display = 'block';
+        if (gardenExitSection) gardenExitSection.style.display = 'block'; // Show exit button
 
-        // --- Add logic for showing garden link on home page ---
-        const gardenInfoAndLink = document.getElementById('gardenInfoAndLink');
+        // Logic for showing garden link on home page
         const homeGardenName = document.getElementById('homeGardenName');
         const homeParentRegLink = document.getElementById('homeParentRegLink');
         const homeCopyGardenLinkBtn = document.getElementById('homeCopyGardenLinkBtn');
         const homeCopyGardenLinkMsg = document.getElementById('homeCopyGardenLinkMsg');
 
         if (gardenInfoAndLink && homeGardenName && homeParentRegLink && homeCopyGardenLinkBtn) {
-            gardenInfoAndLink.style.display = 'block'; // Show the section
+            // Fetch garden name from Supabase
+            const { data: garden, error } = await supabase
+                .from('kindergartens')
+                .select('name')
+                .eq('id', currentGardenId)
+                .single();
 
-            const kindergartens = storage.get('kindergartens') || [];
-            const currentGarden = kindergartens.find(k => k.gardenId === currentGardenId);
-
-            if (currentGarden) {
-                homeGardenName.textContent = `שם הגן: ${currentGarden.name}`;
+            if (error) {
+                console.error('Error fetching garden name:', error);
+                homeGardenName.textContent = 'שגיאה בטעינת שם הגן';
+            } else if (garden) {
+                homeGardenName.textContent = `שם הגן: ${garden.name}`;
                 const parentLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
                 homeParentRegLink.value = parentLink;
 
-                homeCopyGardenLinkBtn.onclick = function() {
-                    const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${currentGarden.name}):%0A${parentLink}`;
-                    const waUrl = `https://wa.me/?text=${msg}`;
+                 homeCopyGardenLinkBtn.onclick = function() {
+                    const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${garden.name}):%0A${parentLink}`;
+                    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`; // Use encodeURIComponent
                     window.open(waUrl, '_blank');
                     // Optional: Show a confirmation message briefly
                     if(homeCopyGardenLinkMsg) {
@@ -126,37 +142,81 @@ document.addEventListener('DOMContentLoaded', () => {
                          setTimeout(() => { homeCopyGardenLinkMsg.style.display = 'none'; }, 3000);
                     }
                 };
+
+            } else {
+                homeGardenName.textContent = 'הגן לא נמצא';
+                // If garden not found in Supabase, clear session and show entry options
+                sessionStorage.removeItem('currentGardenId');
+                window.location.reload(); // Reload to show entry options
             }
+             if (gardenInfoAndLink) gardenInfoAndLink.style.display = 'block'; // Show the garden info section
         }
-        // --- End logic for showing garden link ---
 
     } else {
         // User is not connected to a garden
-        if (registerGardenLink) registerGardenLink.style.display = 'list-item'; // Or 'block', etc.
+        if (registerGardenLink) registerGardenLink.style.display = 'list-item';
         if (childrenListLink) childrenListLink.style.display = 'none';
-
-        // Show garden entry and new garden sections, hide exit button
-        const gardenEntrySection = document.getElementById('gardenEntrySection');
-        const newGardenSection = document.getElementById('newGardenSection');
-        const gardenExitSection = document.getElementById('gardenExitSection');
-        
-        if (gardenEntrySection) gardenEntrySection.style.display = 'block';
-        if (newGardenSection) newGardenSection.style.display = 'block';
-        if (gardenExitSection) gardenExitSection.style.display = 'none';
+        if (gardenEntrySection) gardenEntrySection.style.display = 'block'; // Show entry form
+        if (newGardenSection) newGardenSection.style.display = 'block'; // Show new garden link
+        if (gardenExitSection) gardenExitSection.style.display = 'none'; // Hide exit button
+        if (gardenInfoAndLink) gardenInfoAndLink.style.display = 'none'; // Hide garden info section
     }
 
-    // Function to close event details section
+    // Handle garden entry form submission (Supabase lookup)
+    const gardenEntryForm = document.getElementById('gardenEntryForm');
+    if (gardenEntryForm) {
+        gardenEntryForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const gardenIdInput = document.getElementById('gardenId');
+            const gardenId = gardenIdInput.value.trim(); // Trim whitespace
+
+            // Basic validation for non-empty
+            if (!gardenId) {
+                 alert('אנא הזן מזהה גן.');
+                 return;
+            }
+
+            // Fetch garden from Supabase using the provided ID
+            const { data: garden, error } = await supabase
+                .from('kindergartens')
+                .select('id') // Select just the ID to check existence
+                .eq('id', gardenId)
+                .single();
+
+            if (error) {
+                console.error('Error fetching garden during entry:', error);
+                alert('שגיאה בבדיקת מזהה הגן. אנא נסה שנית.');
+                return;
+            }
+
+            if (garden) {
+                // Garden found, store ID and redirect
+                sessionStorage.setItem('currentGardenId', garden.id);
+                alert('כניסה לגן הצליחה!');
+                window.location.href = 'events.html'; // Redirect to events page
+            } else {
+                // Garden not found with this ID
+                alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
+            }
+        });
+    }
+
+    // Function to close event details section (keeping for now)
     function closeEventDetails() {
         const eventDetails = document.getElementById('eventDetails');
         if (eventDetails) eventDetails.style.display = 'none';
     }
 
-    // Close event details when clicking the X button
+    // Close event details when clicking the X button (keeping for now)
     const closeDetailsBtn = document.querySelector('.close-details');
     if (closeDetailsBtn) {
         closeDetailsBtn.onclick = closeEventDetails;
     }
 });
+
+// Export functions that need to be accessible from other modules
+export { formatDate, isValidDate, generateId }; // Exporting generateId for potential local use, might be removed later
+// Note: supabase is already exported directly at the top
 
 // Global functions for children management
 window.loadChildren = function() {
@@ -222,26 +282,4 @@ window.deleteChild = function(childId) {
 
     // Reload children list
     window.loadChildren();
-};
-
-// Utility functions
-export function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('he-IL');
-}
-
-export function isValidDate(dateString) {
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regex.test(dateString)) return false;
-    
-    const date = new Date(dateString);
-    return date instanceof Date && !isNaN(date);
-}
-
-export function generateId() {
-    return Math.random().toString(36).substr(2, 9);
-}
-
-export function generateGardenId() {
-    return Math.random().toString(36).substr(2, 8).toUpperCase();
-} 
+}; 

@@ -72,58 +72,9 @@
         <p>© 2024 מנהל אירועי ימי הולדת - כל הזכויות שמורות</p>
     </footer>
 
-    <script>
-        // Clear storage function
-        function clearStorage() {
-            if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים?')) {
-                storage.clear();
-                alert('כל הנתונים נמחקו בהצלחה');
-                window.location.reload();
-            }
-        }
-
-        // Exit garden function
-        function exitGarden() {
-            if (confirm('האם אתה בטוח שברצונך לצאת מהגן?')) {
-                sessionStorage.removeItem('currentGardenId');
-                window.location.reload();
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Hamburger menu toggle
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const navList = document.getElementById('navList');
-            hamburgerBtn.addEventListener('click', function() {
-                const expanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', !expanded);
-                navList.classList.toggle('open');
-            });
-
-            // Handle garden entry form submission
-            document.getElementById('gardenEntryForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const gardenId = document.getElementById('gardenId').value;
-                
-                if (!isValidGardenId(gardenId)) {
-                    alert('מזהה הגן חייב להכיל 8 תווים');
-                    return;
-                }
-
-                const kindergartens = storage.get('kindergartens') || [];
-                const garden = kindergartens.find(k => k.gardenId === gardenId);
-                
-                if (garden) {
-                    // Store current garden ID in session storage
-                    sessionStorage.setItem('currentGardenId', gardenId);
-                    // Redirect to events page
-                    window.location.href = 'events.html';
-                } else {
-                    alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
-                }
-            });
-        });
-    </script>
-    <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/he.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/main.js" type="module" defer></script>
 </body>
 </html> 
