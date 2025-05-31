@@ -37,10 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 const gardenData = {
                     name: document.getElementById('kindergartenName').value,
-                    school_year: document.getElementById('schoolYear').value,
-                    teacher_name: document.getElementById('teacherName').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value
+                    admin_email: document.getElementById('email').value
                 };
                 
                 console.log('Attempting to save garden data:', gardenData); // Debug log
