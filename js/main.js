@@ -17,9 +17,18 @@ window.exitGarden = function() {
 };
 
 // Helper function to format date (DD/MM/YYYY)
-export function formatDate(dateString) {
-    if (!dateString) return '';
-    const [year, month, day] = dateString.split('-');
+export function formatDate(dateInput) {
+    if (!dateInput) return '';
+    let year, month, day;
+    if (typeof dateInput === 'string') {
+        [year, month, day] = dateInput.split('-');
+    } else if (dateInput instanceof Date) {
+        year = dateInput.getFullYear();
+        month = String(dateInput.getMonth() + 1).padStart(2, '0');
+        day = String(dateInput.getDate()).padStart(2, '0');
+    } else {
+        return '';
+    }
     return `${day}/${month}/${year}`;
 }
 
