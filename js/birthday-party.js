@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize Flatpickr for event date picker
     const eventDateElement = document.getElementById("eventDate");
+    console.log('eventDateElement found for Flatpickr:', eventDateElement);
     if (eventDateElement) {
         flatpickr(eventDateElement, {
             locale: "he",
