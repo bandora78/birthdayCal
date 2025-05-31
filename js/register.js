@@ -77,13 +77,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (gardenIdFromUrl) {
         // If we have a gardenId in the URL, we're in parent registration mode
-        sessionStorage.setItem('currentGardenId', gardenIdFromUrl); // Store URL ID in session
+        sessionStorage.setItem('currentGardenId', gardenIdFromUrl);
         kindergartenForm.style.display = 'none';
         gardenLinkSection.style.display = 'none';
         childrenList.style.display = 'block';
-        // window.loadChildren(); // We will update loadChildren later in children.js
     } else {
-        // We're in garden registration mode
+        // We're in garden registration mode - show the form
+        kindergartenForm.style.display = 'block';
+        gardenLinkSection.style.display = 'none';
+        childrenList.style.display = 'none';
+
+        // Handle form submission
         kindergartenForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -188,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Copy link functionality (moved outside the conditions to avoid duplication)
+    // Copy link functionality
     if (copyParentLinkBtn) {
         copyParentLinkBtn.addEventListener('click', () => {
             parentRegLink.select();
