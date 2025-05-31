@@ -55,24 +55,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 position: "auto",
                 onReady: function(selectedDates, dateStr, instance) {
                     console.log('Flatpickr is ready');
-                    // Add RTL class to calendar
                     instance.calendarContainer.classList.add('rtl');
+                    setTimeout(() => swapFlatpickrArrows(instance), 0);
                 },
                 onChange: function(selectedDates, dateStr, instance) {
                     console.log('Date selected:', dateStr);
                 },
                 onOpen: function(selectedDates, dateStr, instance) {
-                    // ודא שהחצים מוחלפים גם בפתיחה
-                    setTimeout(() => {
-                        if (instance.calendarContainer.classList.contains('rtl')) {
-                            const monthsDiv = instance.calendarContainer.querySelector('.flatpickr-months');
-                            const prev = monthsDiv.querySelector('.flatpickr-prev-month');
-                            const next = monthsDiv.querySelector('.flatpickr-next-month');
-                            if (prev && next && prev.nextSibling !== next) {
-                                monthsDiv.insertBefore(next, prev);
-                            }
-                        }
-                    }, 0);
+                    setTimeout(() => swapFlatpickrArrows(instance), 0);
+                },
+                onMonthChange: function(selectedDates, dateStr, instance) {
+                    setTimeout(() => swapFlatpickrArrows(instance), 0);
+                },
+                onYearChange: function(selectedDates, dateStr, instance) {
+                    setTimeout(() => swapFlatpickrArrows(instance), 0);
                 }
             });
             // החלף חצים מיד אחרי האתחול
@@ -357,5 +353,16 @@ async function loadUpcomingEvents() {
         }
     } catch (error) {
         console.error('Error loading upcoming events:', error);
+    }
+}
+
+function swapFlatpickrArrows(instance) {
+    if (instance.calendarContainer.classList.contains('rtl')) {
+        const monthsDiv = instance.calendarContainer.querySelector('.flatpickr-months');
+        const prev = monthsDiv.querySelector('.flatpickr-prev-month');
+        const next = monthsDiv.querySelector('.flatpickr-next-month');
+        if (prev && next && prev.nextSibling !== next) {
+            monthsDiv.insertBefore(next, prev);
+        }
     }
 }
