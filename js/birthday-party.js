@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             locale: "he",
             dateFormat: "Y-m-d",
             disableMobile: "true",
-            theme: "material_blue"
+            theme: "material_blue",
+            allowInput: true
         });
     }
 
