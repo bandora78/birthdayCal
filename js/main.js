@@ -37,7 +37,8 @@ window.clearStorage = storage.clear.bind(storage);
 // Global function to exit the current garden
 window.exitGarden = function() {
     if (confirm('האם אתה בטוח שברצונך לצאת מהגן?')) {
-        sessionStorage.removeItem('currentGardenId');
+        // Clear all garden-related data from session storage
+        sessionStorage.clear();
         // Redirect to the home page after exiting
         window.location.href = 'index.html';
     }
@@ -172,14 +173,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Basic validation for non-empty
             if (!gardenId) {
-                 alert('אנא הזן מזהה גן.');
-                 return;
+                alert('אנא הזן מזהה גן.');
+                return;
             }
+
+            // Clear any existing garden data
+            sessionStorage.clear();
 
             // Fetch garden from Supabase using the provided ID
             const { data: garden, error } = await supabase
                 .from('kindergartens')
-                .select('id') // Select just the ID to check existence
+                .select('id, name') // Select both ID and name
                 .eq('id', gardenId)
                 .single();
 
@@ -192,7 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (garden) {
                 // Garden found, store ID and redirect
                 sessionStorage.setItem('currentGardenId', garden.id);
-                alert('כניסה לגן הצליחה!');
+                alert(`ברוכים הבאים לגן ${garden.name}!`);
                 window.location.href = 'events.html'; // Redirect to events page
             } else {
                 // Garden not found with this ID
