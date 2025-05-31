@@ -22,7 +22,7 @@ window.showModal = function(title, childData = null) {
     if (!birthDatePicker) {
         birthDatePicker = flatpickr("#birthDate", {
             locale: "he",
-            dateFormat: "Y-m-d",
+            dateFormat: "Y-m-DD", // Ensure date format is correct for Flatpickr
             maxDate: "today",
             disableMobile: "true",
             theme: "material_blue"
@@ -31,11 +31,13 @@ window.showModal = function(title, childData = null) {
 
     modalTitle.textContent = title;
     if (childData) {
+        // When editing, populate form fields using the mapped data keys
         childIdInput.value = childData.id;
         document.getElementById('childName').value = childData.name;
-        document.getElementById('parentName').value = childData.parent_name;
-        birthDatePicker.setDate(childData.birth_date);
+        document.getElementById('parentName').value = childData.parentName; // Use parentName
+        birthDatePicker.setDate(childData.birthDate); // Use birthDate
     } else {
+        // When adding new, reset form
         childForm.reset();
         childIdInput.value = '';
         birthDatePicker.clear();
