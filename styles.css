@@ -690,7 +690,12 @@ th, td {
 }
 
 .flatpickr-calendar.rtl .flatpickr-months {
-    direction: rtl;
+    flex-direction: row-reverse;
+}
+
+.flatpickr-calendar.rtl .flatpickr-prev-month svg,
+.flatpickr-calendar.rtl .flatpickr-next-month svg {
+    transform: rotate(180deg);
 }
 
 .flatpickr-day.selected {
