@@ -216,8 +216,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Global functions for children management
 
-// Edit child function (will be updated to use Supabase data)
+// Edit child function
 window.editChild = async function(childId) {
+    console.log('Attempting to fetch child for edit with ID:', childId); // Log attempt
     // Fetch child data from Supabase
     const { data: child, error } = await supabase
         .from('children')
@@ -232,13 +233,15 @@ window.editChild = async function(childId) {
     }
 
     if (child) {
+        console.log('Child data fetched from Supabase:', child); // Log fetched data
         // Map Supabase data fields to existing function expectations
         const childDataForModal = {
             id: child.id,
             name: child.name,
-            parentName: child.parent_name,
-            birthDate: child.birth_date
+            parentName: child.parent_name, // Ensure correct mapping
+            birthDate: child.birth_date // Ensure correct mapping
         };
+        console.log('Data prepared for modal:', childDataForModal); // Log data for modal
         window.showModal('עריכת ילד', childDataForModal);
     } else {
         console.warn('Child not found for edit:', childId);
