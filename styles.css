@@ -683,7 +683,6 @@ th, td {
 .flatpickr-calendar {
     font-family: 'Varela Round', Arial, sans-serif !important;
     z-index: 1000;
-    direction: ltr !important;
 }
 
 .flatpickr-calendar.rtl {
