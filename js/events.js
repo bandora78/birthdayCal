@@ -4,7 +4,8 @@
 import { supabase } from './main.js';
 // import { storage } from './main.js'; // We will replace storage usage
 import { formatDate } from './main.js'; // Import formatDate
-import { generateId } from './main.js'; // Import generateId for new attendance records
+// generateId is no longer needed as Supabase generates IDs
+// import { generateId } from './main.js';
 
 // Global variables
 let currentDate = new Date();
@@ -17,6 +18,7 @@ let prevMonthBtn;
 let nextMonthBtn;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('events.js DOMContentLoaded fired');
     // Initialize DOM element references
     calendarGrid = document.getElementById('calendarGrid');
     currentMonthElement = document.getElementById('currentMonth');
