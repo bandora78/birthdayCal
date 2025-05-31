@@ -6,39 +6,10 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Initialize Supabase client immediately
 export const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Storage helper (keeping for now, though moving towards Supabase)
-const storage = {
-    get: function(key) {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : null;
-    },
-    set: function(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-    },
-    remove: function(key) {
-        localStorage.removeItem(key);
-        console.log(`storage.remove: Key '${key}' removed from localStorage.`); // Log removal
-    },
-    clear: function() {
-        localStorage.clear();
-        sessionStorage.clear();
-        console.log('storage.clear: localStorage and sessionStorage cleared.'); // Log clear
-        // Initialize storage with empty data structures
-        this.set('kindergartens', []);
-        this.set('children', []);
-        this.set('events', []);
-        this.set('isInitialized', true);
-    }
-};
-
-// Make clearStorage globally accessible
-window.clearStorage = storage.clear.bind(storage);
-
 // Global function to exit the current garden
 window.exitGarden = function() {
     if (confirm('האם אתה בטוח שברצונך לצאת מהגן?')) {
-        // Clear all storage
-        localStorage.clear();
+        // Clear session storage
         sessionStorage.clear();
         // Redirect to the home page after exiting
         window.location.href = 'index.html';
@@ -61,21 +32,9 @@ export function isValidDate(dateString) {
     return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
-// Helper function to generate a simple unique ID (client-side, for temporary use before Supabase insert)
-export function generateId() {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-}
-
-// Helper function to generate a garden ID (not used anymore with Supabase UUIDs, but keeping for reference/cleanup)
-export function generateGardenId() {
-     // This is the old 8-character logic, no longer needed for Supabase UUIDs
-    return Math.random().toString(36).substring(2, 10).toUpperCase();
-}
-
 // Global function to handle new garden registration
 window.startNewGardenRegistration = function() {
-    // Clear all storage
-    localStorage.clear();
+    // Clear session storage
     sessionStorage.clear();
     // Redirect to registration page
     window.location.href = 'register.html';
@@ -83,14 +42,6 @@ window.startNewGardenRegistration = function() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('main.js DOMContentLoaded fired.');
-    
-    // Initialize storage if not already done (for backward compatibility or local testing)
-    if (!storage.get('isInitialized')) {
-        console.log('Storage not initialized, performing initial setup.');
-        storage.clear(); // This also sets isInitialized to true
-    } else {
-        console.log('Storage already initialized.');
-    }
 
     // Add click handlers for new garden registration links
     const registerLinks = document.querySelectorAll('a[href="register.html"]');
@@ -101,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Hamburger menu toggle (keeping for now)
+    // Hamburger menu toggle
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const navList = document.getElementById('navList');
 
@@ -128,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (childrenListLink) childrenListLink.style.display = 'list-item';
         if (gardenEntrySection) gardenEntrySection.style.display = 'none';
         if (newGardenSection) newGardenSection.style.display = 'none';
-        if (gardenExitSection) gardenExitSection.style.display = 'block'; // Show exit button
+        if (gardenExitSection) gardenExitSection.style.display = 'block';
 
         // Logic for showing garden link on home page
         const homeGardenName = document.getElementById('homeGardenName');
@@ -194,8 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // Clear any existing garden data
-            localStorage.clear();
+            // Clear session storage
             sessionStorage.clear();
 
             // Fetch garden from Supabase using the provided ID
@@ -221,18 +171,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
             }
         });
-    }
-
-    // Function to close event details section (keeping for now)
-    function closeEventDetails() {
-        const eventDetails = document.getElementById('eventDetails');
-        if (eventDetails) eventDetails.style.display = 'none';
-    }
-
-    // Close event details when clicking the X button (keeping for now)
-    const closeDetailsBtn = document.querySelector('.close-details');
-    if (closeDetailsBtn) {
-        closeDetailsBtn.onclick = closeEventDetails;
     }
 });
 
