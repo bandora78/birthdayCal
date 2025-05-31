@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Export functions that need to be accessible from other modules
-export { formatDate, isValidDate, generateId }; // Exporting generateId for potential local use, might be removed later
+export { formatDate, isValidDate }; // Removed generateId since it's already exported as a function declaration
 // Note: supabase is already exported directly at the top
 
 // Global functions for children management
