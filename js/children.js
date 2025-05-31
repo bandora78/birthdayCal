@@ -300,9 +300,8 @@ window.loadChildren = async function() {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${child.name}</td>
-                <td>${child.id}</td>
-                <td>${formatDate(child.birth_date)}</td>
                 <td>${child.parent_name}</td>
+                <td>${formatDate(child.birth_date)}</td>
                 <td>
                     <button onclick="window.editChild('${child.id}')" class="edit-btn">ערוך</button>
                     <button onclick="window.deleteChild('${child.id}')" class="delete-btn">מחק</button>

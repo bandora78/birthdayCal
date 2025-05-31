@@ -1,11 +1,14 @@
-// Import necessary modules
+// Import necessary modules and functions
 import { supabase } from './main.js';
-import { formatDate, generateId } from './main.js';
+import { formatDate } from './main.js';
+// generateId is no longer needed as Supabase generates IDs
+// import { generateId } from './main.js'; 
 
 // Global variables
 let currentGardenId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('birthday-party.js DOMContentLoaded fired');
     // Get garden ID from URL or session storage
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
