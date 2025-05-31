@@ -72,6 +72,15 @@ export function generateGardenId() {
     return Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
+// Global function to handle new garden registration
+window.startNewGardenRegistration = function() {
+    // Clear all storage
+    localStorage.clear();
+    sessionStorage.clear();
+    // Redirect to registration page
+    window.location.href = 'register.html';
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('main.js DOMContentLoaded fired.');
     
@@ -82,6 +91,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         console.log('Storage already initialized.');
     }
+
+    // Add click handlers for new garden registration links
+    const registerLinks = document.querySelectorAll('a[href="register.html"]');
+    registerLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.startNewGardenRegistration();
+        });
+    });
 
     // Hamburger menu toggle (keeping for now)
     const hamburgerBtn = document.getElementById('hamburgerBtn');
