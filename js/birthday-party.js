@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 disableMobile: true,
                 allowInput: true,
                 minDate: "today",
-                appendTo: eventDateElement.parentElement,
+                appendTo: document.body,
                 position: "auto",
                 onReady: function(selectedDates, dateStr, instance) {
                     console.log('Flatpickr is ready');
