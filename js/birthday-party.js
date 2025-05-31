@@ -60,8 +60,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
                 onChange: function(selectedDates, dateStr, instance) {
                     console.log('Date selected:', dateStr);
+                },
+                onOpen: function(selectedDates, dateStr, instance) {
+                    // ודא שהחצים מוחלפים גם בפתיחה
+                    setTimeout(() => {
+                        if (instance.calendarContainer.classList.contains('rtl')) {
+                            const monthsDiv = instance.calendarContainer.querySelector('.flatpickr-months');
+                            const prev = monthsDiv.querySelector('.flatpickr-prev-month');
+                            const next = monthsDiv.querySelector('.flatpickr-next-month');
+                            if (prev && next && prev.nextSibling !== next) {
+                                monthsDiv.insertBefore(next, prev);
+                            }
+                        }
+                    }, 0);
                 }
             });
+            // החלף חצים מיד אחרי האתחול
+            setTimeout(() => {
+                const months = document.querySelectorAll('.flatpickr-calendar.rtl .flatpickr-months');
+                months.forEach(monthsDiv => {
+                    const prev = monthsDiv.querySelector('.flatpickr-prev-month');
+                    const next = monthsDiv.querySelector('.flatpickr-next-month');
+                    if (prev && next && prev.nextSibling !== next) {
+                        monthsDiv.insertBefore(next, prev);
+                    }
+                });
+            }, 0);
         } else {
             console.error('Flatpickr not loaded');
             // Fallback - use regular date input
