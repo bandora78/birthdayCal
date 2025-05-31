@@ -361,8 +361,15 @@ function swapFlatpickrArrows(instance) {
         const monthsDiv = instance.calendarContainer.querySelector('.flatpickr-months');
         const prev = monthsDiv.querySelector('.flatpickr-prev-month');
         const next = monthsDiv.querySelector('.flatpickr-next-month');
-        if (prev && next && prev.nextSibling !== next) {
-            monthsDiv.insertBefore(next, prev);
+        if (prev && next) {
+            // ודא שהחץ של "קודם" הוא הראשון
+            if (monthsDiv.firstChild !== prev) {
+                monthsDiv.insertBefore(prev, monthsDiv.firstChild);
+            }
+            // ודא שהחץ של "הבא" הוא האחרון
+            if (monthsDiv.lastChild !== next) {
+                monthsDiv.appendChild(next);
+            }
         }
     }
 }
