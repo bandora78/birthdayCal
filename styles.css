@@ -681,10 +681,16 @@ th, td {
 
 /* Flatpickr customization */
 .flatpickr-calendar {
-    font-family: inherit;
+    font-family: 'Varela Round', Arial, sans-serif !important;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: absolute;
+    z-index: 1000;
+    direction: ltr !important;
+}
+
+.flatpickr-calendar.rtl {
+    direction: rtl !important;
 }
 
 .flatpickr-day.selected {
@@ -695,59 +701,6 @@ th, td {
 .flatpickr-day.selected:hover {
     background: #45a049;
     border-color: #45a049;
-}
-
-/* Event Form Container */
-.event-form-container {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 20px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 24px rgba(255, 224, 130, 0.3);
-}
-
-.event-form {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-/* Events Lists Layout */
-.events-lists {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-@media (max-width: 768px) {
-    .events-lists {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-}
-
-.parties-list,
-.upcoming-events {
-    background: #fff;
-    padding: 1.5rem;
-    border-radius: 20px;
-    box-shadow: 0 2px 8px rgba(206, 147, 216, 0.3);
-}
-
-.events-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-/* Flatpickr Customizations for RTL */
-.flatpickr-calendar {
-    direction: ltr !important;
-    font-family: 'Varela Round', Arial, sans-serif !important;
-}
-
-.flatpickr-calendar.rtl {
-    direction: rtl !important;
 }
 
 .flatpickr-months .flatpickr-month {
@@ -859,4 +812,33 @@ input:valid {
 /* Added a specific class for event form adjustments if needed */
 .event-form .form-group {
     /* Specific styles for event form if necessary */
+}
+
+/* Events Lists Layout */
+.events-lists {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .events-lists {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.parties-list,
+.upcoming-events {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(206, 147, 216, 0.3);
+}
+
+.events-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 } 

@@ -52,8 +52,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 allowInput: true,
                 minDate: "today",
                 appendTo: eventDateElement.parentElement,
-                onReady: function() {
+                position: "auto",
+                onReady: function(selectedDates, dateStr, instance) {
                     console.log('Flatpickr is ready');
+                    // Add RTL class to calendar
+                    instance.calendarContainer.classList.add('rtl');
                 },
                 onChange: function(selectedDates, dateStr, instance) {
                     console.log('Date selected:', dateStr);
