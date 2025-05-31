@@ -286,11 +286,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const eventDetailsElement = document.getElementById('eventDetails');
             const currentEventIdFromData = eventDetailsElement ? eventDetailsElement.dataset.currentEventId : null;
             if (currentEventIdFromData) {
-                 const events = storage.get('events') || [];
-                 const eventToEdit = events.find(ev => String(ev.id) === String(currentEventIdFromData));
-                 if (eventToEdit) {
-                    window.showEventModal('עריכת אירוע', eventToEdit); // Use global function
-                 }
+                 window.showEventModal('עריכת אירוע', { id: currentEventIdFromData });
             }
         });
     }
@@ -615,7 +611,7 @@ async function loadAttendance(event) {
     // Fetch attendance records for the event
     const { data: attendanceRecords, error } = await supabase
         .from('attendance')
-        .select('*, kindergartens(name)')
+        .select('*')
         .eq('event_id', event.id);
 
     if (error) {
