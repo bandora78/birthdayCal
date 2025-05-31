@@ -37,7 +37,8 @@ window.clearStorage = storage.clear.bind(storage);
 // Global function to exit the current garden
 window.exitGarden = function() {
     if (confirm('האם אתה בטוח שברצונך לצאת מהגן?')) {
-        // Clear all garden-related data from session storage
+        // Clear all storage
+        localStorage.clear();
         sessionStorage.clear();
         // Redirect to the home page after exiting
         window.location.href = 'index.html';
@@ -128,39 +129,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (error) {
                 console.error('Error fetching garden name:', error);
                 homeGardenName.textContent = 'שגיאה בטעינת שם הגן';
+                // If error fetching garden, clear session and show entry options
+                sessionStorage.removeItem('currentGardenId');
+                window.location.reload();
             } else if (garden) {
                 homeGardenName.textContent = `שם הגן: ${garden.name}`;
-                const parentLink = `${window.location.origin}/register.html?gardenId=${currentGardenId}`;
+                const parentLink = `${window.location.origin}/children.html?gardenId=${currentGardenId}`;
                 homeParentRegLink.value = parentLink;
 
-                 homeCopyGardenLinkBtn.onclick = function() {
+                homeCopyGardenLinkBtn.onclick = function() {
                     const msg = `היי! מצרף קישור לרישום ילדים לגן שלנו (${garden.name}):%0A${parentLink}`;
-                    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`; // Use encodeURIComponent
+                    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
                     window.open(waUrl, '_blank');
-                    // Optional: Show a confirmation message briefly
                     if(homeCopyGardenLinkMsg) {
-                         homeCopyGardenLinkMsg.style.display = 'block';
-                         setTimeout(() => { homeCopyGardenLinkMsg.style.display = 'none'; }, 3000);
+                        homeCopyGardenLinkMsg.style.display = 'block';
+                        setTimeout(() => { homeCopyGardenLinkMsg.style.display = 'none'; }, 3000);
                     }
                 };
-
             } else {
-                homeGardenName.textContent = 'הגן לא נמצא';
-                // If garden not found in Supabase, clear session and show entry options
+                // Garden not found in Supabase, clear session and show entry options
                 sessionStorage.removeItem('currentGardenId');
-                window.location.reload(); // Reload to show entry options
+                window.location.reload();
             }
-             if (gardenInfoAndLink) gardenInfoAndLink.style.display = 'block'; // Show the garden info section
+            if (gardenInfoAndLink) gardenInfoAndLink.style.display = 'block';
         }
-
     } else {
         // User is not connected to a garden
         if (registerGardenLink) registerGardenLink.style.display = 'list-item';
         if (childrenListLink) childrenListLink.style.display = 'none';
-        if (gardenEntrySection) gardenEntrySection.style.display = 'block'; // Show entry form
-        if (newGardenSection) newGardenSection.style.display = 'block'; // Show new garden link
-        if (gardenExitSection) gardenExitSection.style.display = 'none'; // Hide exit button
-        if (gardenInfoAndLink) gardenInfoAndLink.style.display = 'none'; // Hide garden info section
+        if (gardenEntrySection) gardenEntrySection.style.display = 'block';
+        if (newGardenSection) newGardenSection.style.display = 'block';
+        if (gardenExitSection) gardenExitSection.style.display = 'none';
+        if (gardenInfoAndLink) gardenInfoAndLink.style.display = 'none';
     }
 
     // Handle garden entry form submission (Supabase lookup)
@@ -169,21 +169,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         gardenEntryForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const gardenIdInput = document.getElementById('gardenId');
-            const gardenId = gardenIdInput.value.trim(); // Trim whitespace
+            const gardenId = gardenIdInput.value.trim();
 
-            // Basic validation for non-empty
             if (!gardenId) {
                 alert('אנא הזן מזהה גן.');
                 return;
             }
 
             // Clear any existing garden data
+            localStorage.clear();
             sessionStorage.clear();
 
             // Fetch garden from Supabase using the provided ID
             const { data: garden, error } = await supabase
                 .from('kindergartens')
-                .select('id, name') // Select both ID and name
+                .select('id, name')
                 .eq('id', gardenId)
                 .single();
 
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Garden found, store ID and redirect
                 sessionStorage.setItem('currentGardenId', garden.id);
                 alert(`ברוכים הבאים לגן ${garden.name}!`);
-                window.location.href = 'events.html'; // Redirect to events page
+                window.location.href = 'events.html';
             } else {
                 // Garden not found with this ID
                 alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
