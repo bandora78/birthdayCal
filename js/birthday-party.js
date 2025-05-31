@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             dateFormat: "Y-m-d",
             disableMobile: "true",
             theme: "material_blue",
-            allowInput: true
+            allowInput: true,
+            appendTo: eventDateElement.parentElement
         });
     }
 
