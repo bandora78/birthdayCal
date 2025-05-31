@@ -24,69 +24,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Initialize Flatpickr for event date picker with better configuration
+    // Initialize vanillajs-datepicker for event date picker
     const eventDateElement = document.getElementById("eventDate");
-    console.log('eventDateElement found for Flatpickr:', eventDateElement);
-    
     if (eventDateElement) {
-        // Wait for Flatpickr to be fully loaded
-        if (typeof flatpickr !== 'undefined') {
-            const fp = flatpickr(eventDateElement, {
-                locale: {
-                    weekdays: {
-                        shorthand: ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'],
-                        longhand: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
-                    },
-                    months: {
-                        shorthand: ['ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יונ', 'יול', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'],
-                        longhand: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
-                    },
-                    firstDayOfWeek: 0,
-                    rangeSeparator: ' עד ',
-                    weekAbbreviation: 'שבוע',
-                    scrollTitle: 'גלול כדי להגדיל',
-                    toggleTitle: 'לחץ כדי להחליף'
-                },
-                dateFormat: "Y-m-d",
-                disableMobile: true,
-                allowInput: true,
-                minDate: "today",
-                appendTo: document.body,
-                position: "auto",
-                onReady: function(selectedDates, dateStr, instance) {
-                    console.log('Flatpickr is ready');
-                    instance.calendarContainer.classList.add('rtl');
-                    setTimeout(() => swapFlatpickrArrows(instance), 0);
-                },
-                onChange: function(selectedDates, dateStr, instance) {
-                    console.log('Date selected:', dateStr);
-                },
-                onOpen: function(selectedDates, dateStr, instance) {
-                    setTimeout(() => swapFlatpickrArrows(instance), 0);
-                },
-                onMonthChange: function(selectedDates, dateStr, instance) {
-                    setTimeout(() => swapFlatpickrArrows(instance), 0);
-                },
-                onYearChange: function(selectedDates, dateStr, instance) {
-                    setTimeout(() => swapFlatpickrArrows(instance), 0);
-                }
-            });
-            // החלף חצים מיד אחרי האתחול
-            setTimeout(() => {
-                const months = document.querySelectorAll('.flatpickr-calendar.rtl .flatpickr-months');
-                months.forEach(monthsDiv => {
-                    const prev = monthsDiv.querySelector('.flatpickr-prev-month');
-                    const next = monthsDiv.querySelector('.flatpickr-next-month');
-                    if (prev && next && prev.nextSibling !== next) {
-                        monthsDiv.insertBefore(next, prev);
-                    }
-                });
-            }, 0);
-        } else {
-            console.error('Flatpickr not loaded');
-            // Fallback - use regular date input
-            eventDateElement.type = 'date';
-        }
+        const datepicker = new Datepicker(eventDateElement, {
+            language: 'he',
+            autohide: true,
+            format: 'yyyy-mm-dd',
+            orientation: 'auto',
+            rtl: true,
+            minDate: new Date(),
+        });
     }
 
     // Load and display garden information
