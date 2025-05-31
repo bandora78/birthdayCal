@@ -689,6 +689,10 @@ th, td {
     direction: rtl !important;
 }
 
+.flatpickr-calendar.rtl .flatpickr-months {
+    direction: rtl;
+}
+
 .flatpickr-day.selected {
     background: #4CAF50;
     border-color: #4CAF50;
