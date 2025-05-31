@@ -695,7 +695,165 @@ th, td {
     background: #45a049;
     border-color: #45a049;
 }
+/* הוסף את הקוד הזה לסוף קובץ styles.css שלך */
 
+/* Event Form Container */
+.event-form-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 24px rgba(255, 224, 130, 0.3);
+}
+
+.event-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Events Lists Layout */
+.events-lists {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .events-lists {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.parties-list,
+.upcoming-events {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(206, 147, 216, 0.3);
+}
+
+.events-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Flatpickr Customizations for RTL */
+.flatpickr-calendar {
+    direction: ltr !important;
+    font-family: 'Varela Round', Arial, sans-serif !important;
+}
+
+.flatpickr-calendar.rtl {
+    direction: rtl !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    height: 34px;
+    line-height: 1;
+    text-align: center;
+    position: relative;
+    user-select: none;
+    overflow: hidden;
+    flex: 1;
+}
+
+.flatpickr-current-month {
+    font-size: 135%;
+    line-height: inherit;
+    font-weight: 300;
+    color: inherit;
+    position: absolute;
+    width: 75%;
+    left: 12.5%;
+    padding: 7.48px 0 0 0;
+    line-height: 1;
+    height: 34px;
+    display: inline-block;
+    text-align: center;
+    transform: translate3d(0px, 0px, 0px);
+}
+
+.flatpickr-weekdays {
+    background: transparent;
+    text-align: center;
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    height: 28px;
+}
+
+.flatpickr-weekday {
+    background: transparent;
+    color: rgba(0,0,0,0.54);
+    cursor: default;
+    font-size: 90%;
+    font-weight: bolder;
+    width: 14.2857143%;
+    flex: 1;
+    text-align: center;
+}
+
+/* Better mobile experience for date input */
+@media (max-width: 768px) {
+    .flatpickr-calendar {
+        font-size: 16px; /* Prevents zoom on iOS */
+        max-width: calc(100vw - 2rem);
+    }
+    
+    input[type="text"]#eventDate {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Style for event cards */
+.event-card h3 {
+    margin-bottom: 0.5rem;
+    color: #43a047;
+}
+
+.event-card p {
+    margin: 0.3rem 0;
+    color: #666;
+}
+
+.event-card strong {
+    color: #333;
+}
+
+/* Form validation styles */
+input:invalid {
+    border-color: #ff5252;
+    box-shadow: 0 0 0 2px rgba(255, 82, 82, 0.2);
+}
+
+input:valid {
+    border-color: #4caf50;
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Success message */
+.success-message {
+    background: #e8f5e8;
+    border: 1px solid #4caf50;
+    color: #2e7d32;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: none;
+}
+
+.success-message.show {
+    display: block;
+}
 /* Modal styles (reused for event form modal) */
 /* Added a specific class for event form adjustments if needed */
 .event-form .form-group {
