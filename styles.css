@@ -689,8 +689,14 @@ th, td {
     direction: rtl !important;
 }
 
-.flatpickr-calendar.rtl .flatpickr-months {
-    flex-direction: row-reverse;
+.flatpickr-calendar.rtl .flatpickr-prev-month {
+    order: 2;
+}
+.flatpickr-calendar.rtl .flatpickr-next-month {
+    order: 0;
+}
+.flatpickr-calendar.rtl .flatpickr-current-month {
+    order: 1;
 }
 
 .flatpickr-calendar.rtl .flatpickr-prev-month svg,
