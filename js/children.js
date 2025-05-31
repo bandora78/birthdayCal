@@ -5,7 +5,6 @@ console.log('children.js script started'); // Add log at the very beginning
 // Import necessary modules
 import { supabase } from './main.js';
 // import { storage } from './main.js'; // We will replace storage usage
-import { generateId } from './main.js'; // Assuming generateId is still needed for local use or new children before saving
 import { formatDate } from './main.js'; // Import formatDate
 import { isValidDate } from './main.js'; // Import isValidDate
 
@@ -17,13 +16,18 @@ window.showModal = function(title, childData = null) {
     const modalTitle = document.getElementById('modalTitle');
     const childForm = document.getElementById('childForm');
     const childIdInput = document.getElementById('childId');
-    const birthDatePicker = flatpickr("#birthDate", {
-        locale: "he",
-        dateFormat: "Y-m-d",
-        maxDate: "today",
-        disableMobile: "true",
-        theme: "material_blue"
-    });
+
+    // Initialize or reinitialize Flatpickr
+    let birthDatePicker = document.querySelector("#birthDate")._flatpickr;
+    if (!birthDatePicker) {
+        birthDatePicker = flatpickr("#birthDate", {
+            locale: "he",
+            dateFormat: "Y-m-d",
+            maxDate: "today",
+            disableMobile: "true",
+            theme: "material_blue"
+        });
+    }
 
     modalTitle.textContent = title;
     if (childData) {
