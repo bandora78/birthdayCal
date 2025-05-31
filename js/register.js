@@ -39,9 +39,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     name: document.getElementById('kindergartenName').value,
                     school_year: document.getElementById('schoolYear').value,
                     teacher_name: document.getElementById('teacherName').value,
-                    contact_email: document.getElementById('email').value,
-                    contact_phone: document.getElementById('phone').value
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value
                 };
+                
+                console.log('Attempting to save garden data:', gardenData); // Debug log
                 
                 // Insert new garden into Supabase
                 const { data, error } = await supabase
