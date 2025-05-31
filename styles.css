@@ -684,6 +684,7 @@ th, td {
     font-family: inherit;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: absolute;
 }
 
 .flatpickr-day.selected {
@@ -695,7 +696,6 @@ th, td {
     background: #45a049;
     border-color: #45a049;
 }
-/* הוסף את הקוד הזה לסוף קובץ styles.css שלך */
 
 /* Event Form Container */
 .event-form-container {
@@ -854,6 +854,7 @@ input:valid {
 .success-message.show {
     display: block;
 }
+
 /* Modal styles (reused for event form modal) */
 /* Added a specific class for event form adjustments if needed */
 .event-form .form-group {
