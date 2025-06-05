@@ -557,8 +557,9 @@ window.showEventDetails = async function(event) {
 
     finalAttendanceFormElement.onsubmit = async (e) => {
         e.preventDefault();
-        const status = attendanceStatusSelectElement.value;
-        const notes = attendanceNotesInput.value;
+        const statusValue = attendanceStatusSelectElement.value;
+        const parentName = document.getElementById('parentName').value;
+        const childName = document.getElementById('childName').value;
         const eventId = eventDetailsElement.dataset.currentEventId;
 
         if (!eventId) {
@@ -567,59 +568,46 @@ window.showEventDetails = async function(event) {
             return;
         }
 
-        const currentGardenId = sessionStorage.getItem('currentGardenId');
-        if (!currentGardenId) {
-             console.error('Cannot save attendance: Garden ID not found.');
-             alert('שגיאה בשמירת אישור הגעה: מזהה גן חסר.');
-             return;
+        if (!parentName || !childName) {
+            alert('אנא הזן שם הורה ושם ילד.');
+            return;
         }
 
-        // Check if an attendance record already exists for this event
-        const { data: existingAttendance, error: fetchError } = await supabase
-            .from('attendance')
-            .select('id')
-            .eq('event_id', eventId);
-
-        if (fetchError) {
-            console.error('Error checking existing attendance:', fetchError);
-            alert('שגיאה בשמירת אישור הגעה.');
-            return;
+        // Convert status value to Hebrew text
+        let statusText = '';
+        switch (statusValue) {
+            case 'yes':
+                statusText = 'יגיע';
+                break;
+            case 'no':
+                statusText = 'לא יגיע';
+                break;
+            case 'maybe':
+                statusText = 'אולי יגיע';
+                break;
+            default:
+                statusText = statusValue;
         }
 
         const attendanceDataToSave = {
             event_id: eventId,
-            status: status
-            // Add created_at/updated_at if needed in table schema
+            parent_name: parentName,
+            child_name: childName,
+            status: statusText
         };
 
-        if (existingAttendance && existingAttendance.length > 0) {
-            // Update existing record
-            const { data, error } = await supabase
-                .from('attendance')
-                .update(attendanceDataToSave)
-                .eq('id', existingAttendance[0].id);
+        // Insert new record (always add new attendance, don't update existing)
+        const { data, error } = await supabase
+            .from('attendance')
+            .insert([attendanceDataToSave]); // insert expects an array
 
-            if (error) {
-                console.error('Error updating attendance:', error);
-                alert('שגיאה בעדכון אישור הגעה.');
-            } else {
-                alert('אישור ההגעה עודכן בהצלחה!');
-                loadAttendance(event); // Reload attendance table
-            }
+        if (error) {
+            console.error('Error inserting attendance:', error);
+            alert('שגיאה בהוספת אישור הגעה.');
         } else {
-            // Insert new record
-            // Supabase should generate the ID, but if not, we might use generateId()
-             const { data, error } = await supabase
-                 .from('attendance')
-                 .insert([attendanceDataToSave]); // insert expects an array
-
-            if (error) {
-                console.error('Error inserting attendance:', error);
-                alert('שגיאה בהוספת אישור הגעה.');
-            } else {
-                alert('אישור ההגעה נשמר בהצלחה!');
-                loadAttendance(event); // Reload attendance table
-            }
+            alert('אישור ההגעה נשמר בהצלחה!');
+            finalAttendanceFormElement.reset(); // Clear form
+            loadAttendance(event); // Reload attendance table
         }
     };
 
