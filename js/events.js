@@ -282,11 +282,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const deleteEventBtn = document.getElementById('deleteEventBtn');
 
     if (editEventBtn) {
-        editEventBtn.addEventListener('click', () => {
+        editEventBtn.addEventListener('click', async () => {
             const eventDetailsElement = document.getElementById('eventDetails');
             const currentEventIdFromData = eventDetailsElement ? eventDetailsElement.dataset.currentEventId : null;
             if (currentEventIdFromData) {
-                 window.showEventModal('עריכת אירוע', { id: currentEventIdFromData });
+                // Fetch full event data from Supabase
+                const { data: eventData, error } = await supabase
+                    .from('events')
+                    .select('*')
+                    .eq('id', currentEventIdFromData)
+                    .single();
+
+                if (error) {
+                    console.error('Error fetching event for edit:', error);
+                    alert('שגיאה בטעינת נתוני האירוע לעריכה.');
+                    return;
+                }
+
+                if (eventData) {
+                    // Map Supabase field names to expected format
+                    const mappedEventData = {
+                        id: eventData.id,
+                        type: eventData.type,
+                        childId: eventData.child_id,
+                        date: eventData.date,
+                        location: eventData.location,
+                        notes: eventData.notes
+                    };
+                    window.showEventModal('עריכת אירוע', mappedEventData);
+                }
             }
         });
     }
@@ -312,7 +336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Global functions for managing events and modals
 
 // Show Event Modal function (Global)
-window.showEventModal = function(title, eventData = null) {
+window.showEventModal = async function(title, eventData = null) {
     const eventFormModal = document.getElementById('eventFormModal');
     const eventFormModalContent = document.getElementById('eventFormModalContent');
     const eventModalTitle = document.getElementById('eventModalTitle');
@@ -341,13 +365,30 @@ window.showEventModal = function(title, eventData = null) {
         // Handle child select for birthday
         if (eventData.type === 'birthday') {
             editChildSelectGroup.style.display = 'block';
-            // Load children if not already loaded and select the correct child
-            // This part is already handled in the DOMContentLoaded listener for the change event
-            // We just need to set the value here
-            // A slight delay might be needed to ensure children are loaded before setting the value
-            setTimeout(() => {
-                 editChildSelect.value = eventData.childId;
-            }, 100);
+            
+            // Load children from Supabase and select the correct child
+            const currentGardenId = sessionStorage.getItem('currentGardenId');
+            if (currentGardenId) {
+                const { data: children, error } = await supabase
+                    .from('children')
+                    .select('id, name')
+                    .eq('garden_id', currentGardenId);
+
+                if (error) {
+                    console.error('Error fetching children for edit modal:', error);
+                } else {
+                    editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
+                    children.forEach(child => {
+                        const option = document.createElement('option');
+                        option.value = child.id;
+                        option.textContent = `${child.name} (מזהה: ${child.id})`;
+                        editChildSelect.appendChild(option);
+                    });
+                    
+                    // Select the correct child
+                    editChildSelect.value = eventData.childId;
+                }
+            }
 
         } else {
             editChildSelectGroup.style.display = 'none';
@@ -379,17 +420,8 @@ window.showEventModal = function(title, eventData = null) {
         editEventIdInput.value = ''; // Clear ID for new events
         editEventTypeSelect.value = 'birthday'; // Default to birthday for new events
         editChildSelectGroup.style.display = 'block'; // Show child select for default type
-        editChildSelect.innerHTML = ''; // Clear children options
-        // Load children for new event
-        const currentGardenId = sessionStorage.getItem('currentGardenId'); // Get current garden id
-        const children = (storage.get('children') || []).filter(child => child.gardenId === currentGardenId);
-        editChildSelect.innerHTML = '<option value="">בחר ילד</option>';
-        children.forEach(child => {
-            const option = document.createElement('option');
-            option.value = child.id;
-            option.textContent = `${child.name} (מזהה: ${child.id})`;
-            editChildSelect.appendChild(option);
-        });
+        editChildSelect.innerHTML = '<option value="">בחר ילד</option>'; // Clear children options
+        
         if (eventDatePickerInstance) { // Check if eventDatePicker exists
             eventDatePickerInstance.clear();
         }
@@ -465,8 +497,10 @@ window.showEventDetails = async function(event) {
     // Display event details
     let title = '';
     let childName = '';
+    let eventType = '';
 
     if (event.type === 'birthday') {
+        eventType = 'יום הולדת';
         // If event object already has childName (from direct link fetch with join)
         if (event.childName) {
              childName = event.childName;
@@ -487,10 +521,23 @@ window.showEventDetails = async function(event) {
         }
         title = `יום הולדת ${childName}`; // Use fetched or available child name
     } else {
+        eventType = 'אירוע כללי';
+        childName = 'לא רלוונטי';
         title = 'אירוע כללי';
     }
 
     eventTitleElement.textContent = title;
+    
+    // Update specific fields in HTML
+    const eventChildNameElement = document.getElementById('eventChildName');
+    const eventTypeTextElement = document.getElementById('eventTypeText');
+    
+    if (eventChildNameElement) {
+        eventChildNameElement.textContent = childName;
+    }
+    if (eventTypeTextElement) {
+        eventTypeTextElement.textContent = eventType;
+    }
     
     // Format date using imported function
     eventDateElement.textContent = `תאריך: ${formatDate(new Date(event.date))}`;
