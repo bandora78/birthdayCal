@@ -504,12 +504,13 @@ window.showEventDetails = async function(event) {
         // If event object already has childName (from direct link fetch with join)
         if (event.childName) {
              childName = event.childName;
-        } else if (event.childId) {
+        } else if (event.childId || event.child_id) {
             // Fetch child name if not already available
+            const childId = event.childId || event.child_id; // Support both formats
             const { data: child, error: childError } = await supabase
                 .from('children')
                 .select('name')
-                .eq('id', event.childId)
+                .eq('id', childId)
                 .single();
 
             if (childError) {
