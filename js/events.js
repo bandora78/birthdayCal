@@ -578,10 +578,9 @@ window.showEventDetails = async function(event) {
         const { data: existingAttendance, error: fetchError } = await supabase
             .from('attendance')
             .select('id')
-            .eq('event_id', eventId)
-            .single();
+            .eq('event_id', eventId);
 
-        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means no rows found (this is expected if no record exists)
+        if (fetchError) {
             console.error('Error checking existing attendance:', fetchError);
             alert('שגיאה בשמירת אישור הגעה.');
             return;
@@ -589,17 +588,16 @@ window.showEventDetails = async function(event) {
 
         const attendanceDataToSave = {
             event_id: eventId,
-            status: status,
-            notes: notes
+            status: status
             // Add created_at/updated_at if needed in table schema
         };
 
-        if (existingAttendance) {
+        if (existingAttendance && existingAttendance.length > 0) {
             // Update existing record
             const { data, error } = await supabase
                 .from('attendance')
                 .update(attendanceDataToSave)
-                .eq('id', existingAttendance.id);
+                .eq('id', existingAttendance[0].id);
 
             if (error) {
                 console.error('Error updating attendance:', error);
