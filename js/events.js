@@ -659,13 +659,13 @@ async function loadAttendance(event) {
     if (attendanceRecords && attendanceRecords.length > 0) {
         attendanceRecords.forEach(record => {
             const row = attendanceTableBodyElement.insertRow();
-            const statusCell = row.insertCell();
             const parentCell = row.insertCell();
             const childCell = row.insertCell();
+            const statusCell = row.insertCell();
 
-            statusCell.textContent = getAttendanceStatusText(record.status);
             parentCell.textContent = record.parent_name || '';
             childCell.textContent = record.child_name || '';
+            statusCell.textContent = getAttendanceStatusText(record.status);
         });
     } else {
         const row = attendanceTableBodyElement.insertRow();
@@ -678,9 +678,9 @@ async function loadAttendance(event) {
 // Get attendance status text
 function getAttendanceStatusText(status) {
     switch (status) {
-        case 'coming': return 'מגיע/ה';
-        case 'not-coming': return 'לא מגיע/ה';
-        case 'maybe': return 'אולי';
+        case 'yes': return 'יגיע';
+        case 'no': return 'לא יגיע';
+        case 'maybe': return 'אולי יגיע';
         default: return status;
     }
 }
