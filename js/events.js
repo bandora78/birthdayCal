@@ -574,11 +574,10 @@ window.showEventDetails = async function(event) {
              return;
         }
 
-        // Check if an attendance record already exists for this garden and event
+        // Check if an attendance record already exists for this event
         const { data: existingAttendance, error: fetchError } = await supabase
             .from('attendance')
             .select('id')
-            .eq('garden_id', currentGardenId)
             .eq('event_id', eventId)
             .single();
 
@@ -589,7 +588,6 @@ window.showEventDetails = async function(event) {
         }
 
         const attendanceDataToSave = {
-            garden_id: currentGardenId,
             event_id: eventId,
             status: status,
             notes: notes
@@ -737,8 +735,7 @@ if (attendanceForm) {
                 event_id: currentEventId,
                 parent_name: attendanceData.parentName,
                 child_name: attendanceData.childName,
-                status: attendanceData.status,
-                garden_id: event.garden_id
+                status: attendanceData.status
             }]);
 
         if (attendanceError) {
