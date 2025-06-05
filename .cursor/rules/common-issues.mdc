@@ -1,0 +1,135 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Common Issues & Solutions
+
+## Database Schema Issues
+
+### Missing Columns
+**Problem**: Supabase errors like "column does not exist"
+**Solution**: Check actual database schema vs. code expectations
+- Remove references to non-existent columns (e.g., `garden_id` in attendance table)
+- Update queries to match actual column names
+
+### Field Name Mismatches
+**Problem**: JavaScript uses camelCase but Supabase uses snake_case
+**Solution**: Map field names when needed
+```javascript
+// Handle both formats
+const childId = event.childId || event.child_id;
+```
+
+## Date Picker Issues
+
+### Flatpickr RTL Problems
+**Problem**: Flatpickr arrows appear in wrong positions for RTL
+**Solution**: Use vanillajs-datepicker instead
+```javascript
+const datepicker = new Datepicker(element, {
+    language: 'he',
+    rtl: true,
+    format: 'yyyy-mm-dd'
+});
+```
+
+### Date Format Handling
+**Problem**: formatDate function fails with Date objects
+**Solution**: Support both string and Date inputs
+```javascript
+export function formatDate(dateInput) {
+    if (!dateInput) return '';
+    let year, month, day;
+    if (typeof dateInput === 'string') {
+        [year, month, day] = dateInput.split('-');
+    } else if (dateInput instanceof Date) {
+        year = dateInput.getFullYear();
+        month = String(dateInput.getMonth() + 1).padStart(2, '0');
+        day = String(dateInput.getDate()).padStart(2, '0');
+    }
+    return `${day}/${month}/${year}`;
+}
+```
+
+## Form Display Issues
+
+### Duplicate Labels
+**Problem**: Form shows "תאריך: תאריך: 24/06/2025"
+**Solution**: Don't include label text in JavaScript content
+```javascript
+// Wrong
+eventDateElement.textContent = `תאריך: ${formatDate(date)}`;
+
+// Correct
+eventDateElement.textContent = formatDate(date);
+```
+
+### Missing Form Data
+**Problem**: Form fields appear empty in database
+**Solution**: Explicitly get values from form elements
+```javascript
+const parentName = document.getElementById('parentName').value;
+const childName = document.getElementById('childName').value;
+```
+
+## Event Management Issues
+
+### Event Details Not Showing
+**Problem**: showEventDetails can't find required DOM elements
+**Solution**: Ensure all required elements exist in HTML
+- Check element IDs match between HTML and JavaScript
+- Add missing elements like `eventChildName`, `eventTypeText`
+
+### Edit Modal Empty Fields
+**Problem**: Edit form doesn't populate with existing data
+**Solution**: Fetch complete event data before opening modal
+```javascript
+// Fetch full event data first
+const { data: eventData, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', eventId)
+    .single();
+
+// Then map to expected format
+const mappedData = {
+    id: eventData.id,
+    type: eventData.type,
+    childId: eventData.child_id,
+    // ... other fields
+};
+```
+
+## Attendance System Issues
+
+### Status Values
+**Problem**: Status saves as "yes" instead of Hebrew text
+**Solution**: Convert values to Hebrew
+```javascript
+let statusText = '';
+switch (statusValue) {
+    case 'yes': statusText = 'יגיע'; break;
+    case 'no': statusText = 'לא יגיע'; break;
+    case 'maybe': statusText = 'אולי יגיע'; break;
+}
+```
+
+## Session Management Issues
+
+### Garden ID Validation
+**Problem**: Operations fail without valid garden context
+**Solution**: Always validate garden ID exists
+```javascript
+const currentGardenId = sessionStorage.getItem('currentGardenId');
+if (!currentGardenId) {
+    alert('יש להיכנס לגן תחילה');
+    window.location.href = 'index.html';
+    return;
+}
+```
+
+## File References
+- Main utilities: [js/main.js](mdc:js/main.js)
+- Event management: [js/events.js](mdc:js/events.js)
+- Form styling: [styles.css](mdc:styles.css)

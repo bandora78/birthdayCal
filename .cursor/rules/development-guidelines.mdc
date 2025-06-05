@@ -1,0 +1,85 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Development Guidelines
+
+## Coding Standards
+
+### JavaScript Patterns
+- Use ES6 modules with `import`/`export`
+- All JavaScript files use `document.addEventListener('DOMContentLoaded', ...)` pattern
+- Global functions are attached to `window` object for cross-file access
+- Use async/await for Supabase operations
+- Always handle errors from Supabase operations
+
+### HTML Structure
+- All pages use `lang="he" dir="rtl"` for Hebrew RTL support
+- Form inputs use `required` attribute for validation
+- Use semantic HTML elements (`main`, `header`, `nav`, `section`)
+- Modal dialogs follow consistent structure with `.modal` and `.modal-content`
+
+### CSS Guidelines
+- Use CSS Grid and Flexbox for layouts
+- RTL support: avoid `left`/`right`, use `start`/`end` or logical properties
+- Responsive design with mobile-first approach
+- Use CSS custom properties (variables) for consistent theming
+
+## RTL (Right-to-Left) Support
+
+### Key Principles
+- Text direction: `dir="rtl"` on HTML elements
+- Layout: Use `justify-content: space-between` instead of fixed positioning
+- Date pickers: Use vanillajs-datepicker with `rtl: true` option
+- Navigation: Right-to-left flow for menus and buttons
+
+### Common RTL Patterns
+```css
+/* Good - uses logical properties */
+margin-inline-start: 1rem;
+padding-inline-end: 0.5rem;
+
+/* Avoid - directional properties */
+margin-left: 1rem;
+padding-right: 0.5rem;
+```
+
+## Supabase Integration
+
+### Database Operations
+- Always use try-catch or check for `error` in destructured response
+- Use `.select()` to specify needed columns
+- Use `.eq()`, `.gte()`, `.lte()` for filtering
+- Use `.single()` only when expecting exactly one result
+
+### Common Patterns
+```javascript
+// Fetching data
+const { data, error } = await supabase
+    .from('table_name')
+    .select('column1, column2')
+    .eq('filter_column', value);
+
+// Inserting data
+const { data, error } = await supabase
+    .from('table_name')
+    .insert([dataObject]);
+
+// Updating data
+const { data, error } = await supabase
+    .from('table_name')
+    .update(dataObject)
+    .eq('id', recordId);
+```
+
+## Session Management
+- Use `sessionStorage.getItem('currentGardenId')` for garden context
+- Always validate garden ID exists before operations
+- Redirect to [index.html](mdc:index.html) if no valid garden session
+
+## Form Handling
+- Reset forms after successful operations
+- Show Hebrew success/error messages
+- Validate required fields before submission
+- Use semantic form structure with proper labels

@@ -1,0 +1,42 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Hebrew Kindergarten Event Management System
+
+## Project Overview
+This is a web-based event management system for Hebrew kindergartens built with vanilla HTML/CSS/JavaScript and Supabase as the backend. The system supports RTL (right-to-left) Hebrew text and manages kindergarten events, children, and attendance tracking.
+
+## Core Features
+- **Garden Registration & Login**: Kindergartens can register and manage their own data
+- **Children Management**: Add, edit, and track children in each kindergarten
+- **Event Management**: Create and manage events (birthdays, general events)
+- **Birthday Party Coordination**: Specialized birthday event planning
+- **Attendance Tracking**: Parents can confirm attendance for events
+- **Hebrew RTL Support**: Full Hebrew language support with proper RTL layout
+
+## Technology Stack
+- **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6 modules)
+- **Backend**: Supabase (PostgreSQL database, authentication, real-time)
+- **Date Picker**: vanillajs-datepicker (replaced Flatpickr for better RTL support)
+- **Styling**: Custom CSS with RTL support and responsive design
+
+## Key Files Structure
+- [index.html](mdc:index.html) - Main entry/login page
+- [register.html](mdc:register.html) - Kindergarten registration
+- [events.html](mdc:events.html) - Event calendar and management
+- [children.html](mdc:children.html) - Children management
+- [birthday-party.html](mdc:birthday-party.html) - Birthday event coordination
+- [styles.css](mdc:styles.css) - Global styles with RTL support
+- [js/main.js](mdc:js/main.js) - Shared utilities and Supabase config
+- [js/events.js](mdc:js/events.js) - Event management logic
+- [js/children.js](mdc:js/children.js) - Children management logic
+- [js/birthday-party.js](mdc:js/birthday-party.js) - Birthday coordination logic
+- [js/register.js](mdc:js/register.js) - Registration logic
+
+## Database Schema (Supabase)
+- **kindergartens**: Garden info (id, name, admin_email)
+- **children**: Child records (id, name, parent_name, birth_date, garden_id)
+- **events**: Events (id, type, child_id, date, location, notes, garden_id)
+- **attendance**: Attendance records (id, event_id, parent_name, child_name, status)
