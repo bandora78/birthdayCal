@@ -541,10 +541,10 @@ window.showEventDetails = async function(event) {
     }
     
     // Format date using imported function
-    eventDateElement.textContent = `תאריך: ${formatDate(new Date(event.date))}`;
+    eventDateElement.textContent = formatDate(new Date(event.date));
 
-    eventLocationElement.textContent = `מיקום: ${event.location}`;
-    eventNotesElement.textContent = `הערות: ${event.notes || 'אין'}`;
+    eventLocationElement.textContent = event.location;
+    eventNotesElement.textContent = event.notes || 'אין';
 
     // Load and display attendance
     await loadAttendance(event);
