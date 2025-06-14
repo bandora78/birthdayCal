@@ -331,33 +331,6 @@ document.addEventListener('DOMContentLoaded', async () => {
          closeDetailsBtn.onclick = window.closeEventDetails; // Use global function
      }
 
-    // Add WhatsApp reminder button logic
-    const sendReminderBtn = document.getElementById('sendReminderBtn');
-    if (sendReminderBtn) {
-        // הכנה מראש של כל הערכים להודעת הוואטסאפ
-        const reminderEventType = event.type;
-        const reminderChildName = event.childName;
-        const reminderDate = formatDate(new Date(event.date));
-        const reminderLocation = event.location;
-        const reminderNotes = event.notes || '';
-        const eventUrl = window.location.origin + window.location.pathname + '#event-' + event.id;
-
-        sendReminderBtn.onclick = function() {
-            let msg = 'שלום! תזכורת: אירוע בגן';
-            msg += '\nסוג אירוע: ' + reminderEventType;
-            if (reminderChildName && reminderChildName !== 'לא רלוונטי') {
-                msg += '\nשם הילד: ' + reminderChildName;
-            }
-            msg += '\nתאריך: ' + reminderDate;
-            msg += '\nמיקום: ' + reminderLocation;
-            if (reminderNotes) {
-                msg += '\nהערות: ' + reminderNotes;
-            }
-            msg += '\nלפרטים נוספים: ' + eventUrl;
-            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
-        };
-    }
-
 });
 
 // Global functions for managing events and modals
@@ -644,6 +617,31 @@ window.showEventDetails = async function(event) {
 
     // Scroll to details section
     eventDetailsElement.scrollIntoView({ behavior: 'smooth' });
+
+    // Add WhatsApp reminder button logic here
+    const sendReminderBtn = document.getElementById('sendReminderBtn');
+    if (sendReminderBtn) {
+        const reminderEventType = event.type === 'birthday' ? 'יום הולדת' : 'אירוע כללי';
+        const reminderChildName = event.childName || '';
+        const reminderDate = formatDate(new Date(event.date));
+        const reminderLocation = event.location;
+        const reminderNotes = event.notes || '';
+        const eventUrl = window.location.origin + window.location.pathname + '#event-' + event.id;
+        sendReminderBtn.onclick = function() {
+            let msg = 'שלום! תזכורת: אירוע בגן';
+            msg += '\nסוג אירוע: ' + reminderEventType;
+            if (reminderChildName && reminderChildName !== 'לא רלוונטי') {
+                msg += '\nשם הילד: ' + reminderChildName;
+            }
+            msg += '\nתאריך: ' + reminderDate;
+            msg += '\nמיקום: ' + reminderLocation;
+            if (reminderNotes) {
+                msg += '\nהערות: ' + reminderNotes;
+            }
+            msg += '\nלפרטים נוספים: ' + eventUrl;
+            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+        };
+    }
 };
 
 // Global function to close event details section (called from deleteEvent)
