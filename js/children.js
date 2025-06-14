@@ -84,7 +84,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     if (error) {
         console.error('Error fetching garden data:', error);
-        alert('שגיאה בטעינת פרטי הגן.');
+        if (error.message && error.message.includes('Failed to fetch')) {
+            alert('לא ניתן להתחבר לשרת. בדוק חיבור לאינטרנט או נסה לרענן את הדף.');
+        } else {
+            alert('שגיאה בטעינת פרטי הגן.');
+        }
         return;
     }
 

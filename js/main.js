@@ -10,7 +10,14 @@ export const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 window.exitGarden = function() {
     if (confirm('האם אתה בטוח שברצונך לצאת מהגן?')) {
         // Clear session storage
+        const currentGardenId = sessionStorage.getItem('currentGardenId');
         sessionStorage.clear();
+        // Remove current garden from savedGardens
+        if (currentGardenId) {
+            let gardens = JSON.parse(localStorage.getItem('savedGardens') || '[]');
+            gardens = gardens.filter(g => g.id !== currentGardenId);
+            localStorage.setItem('savedGardens', JSON.stringify(gardens));
+        }
         // Redirect to the home page after exiting
         window.location.href = 'index.html';
     }
