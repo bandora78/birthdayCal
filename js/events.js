@@ -29,14 +29,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Get garden ID from URL or session storage
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
-    currentGardenId = sessionStorage.getItem('currentGardenId');
+    let currentGardenId = sessionStorage.getItem('currentGardenId');
 
-    if (gardenIdFromUrl && gardenIdFromUrl !== currentGardenId) {
-        // If gardenId in URL is different from session, update session
-        currentGardenId = gardenIdFromUrl;
-        sessionStorage.setItem('currentGardenId', currentGardenId);
-    } else if (!currentGardenId) {
-        // If no gardenId in URL and not in session, redirect to home
+    // --- לוגיקת חיבור לגן כמו ב-children.js ---
+    if (gardenIdFromUrl) {
+        if (currentGardenId !== gardenIdFromUrl) {
+            try {
+                const { data: garden, error } = await supabase
+                    .from('kindergartens')
+                    .select('id, name')
+                    .eq('id', gardenIdFromUrl)
+                    .single();
+                if (!error && garden) {
+                    sessionStorage.setItem('currentGardenId', garden.id);
+                    currentGardenId = garden.id;
+                    // שמור גם ב-localStorage (savedGardens)
+                    let gardens = JSON.parse(localStorage.getItem('savedGardens') || '[]');
+                    if (!gardens.find(g => g.id === garden.id)) {
+                        gardens.push({ id: garden.id, name: garden.name });
+                        localStorage.setItem('savedGardens', JSON.stringify(gardens));
+                    }
+                } else {
+                    alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+            } catch (err) {
+                alert('שגיאה בחיבור לגן.');
+                window.location.href = 'index.html';
+                return;
+            }
+        }
+    }
+    currentGardenId = sessionStorage.getItem('currentGardenId');
+    if (!currentGardenId) {
         alert('יש להיכנס לגן תחילה');
         window.location.href = 'index.html';
         return;

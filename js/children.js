@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }, 2000);
             });
         }
+        window.loadChildren();
     } else {
         alert('הגן לא נמצא במערכת. אנא וודא את מזהה הגן.');
         window.location.href = 'index.html';
@@ -230,9 +231,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.loadChildren();
         window.closeModal();
     });
-
-    // Load initial children list
-    window.loadChildren();
 
     // Add child button click handler
     const addChildBtn = document.getElementById('addChildBtn');
