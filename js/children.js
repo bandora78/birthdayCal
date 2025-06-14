@@ -63,9 +63,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const gardenIdFromUrl = urlParams.get('gardenId');
     
-    // If we have a gardenId in the URL, set it in sessionStorage
+    // אם נכנסו עם gardenId ב-URL, בצע חיבור לגן (כמו ב-index)
     if (gardenIdFromUrl) {
-        sessionStorage.setItem('currentGardenId', gardenIdFromUrl);
+        // בדוק אם זה גן אחר מהנוכחי
+        if (sessionStorage.getItem('currentGardenId') !== gardenIdFromUrl) {
+            // נביא את שם הגן מה-DB
+            try {
+                const { data: garden, error } = await supabase
+                    .from('kindergartens')
+                    .select('id, name')
+                    .eq('id', gardenIdFromUrl)
+                    .single();
+                if (!error && garden) {
+                    sessionStorage.setItem('currentGardenId', garden.id);
+                    // שמור גם ב-localStorage (savedGardens)
+                    let gardens = JSON.parse(localStorage.getItem('savedGardens') || '[]');
+                    if (!gardens.find(g => g.id === garden.id)) {
+                        gardens.push({ id: garden.id, name: garden.name });
+                        localStorage.setItem('savedGardens', JSON.stringify(gardens));
+                    }
+                } else {
+                    alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+            } catch (err) {
+                alert('שגיאה בחיבור לגן.');
+                window.location.href = 'index.html';
+                return;
+            }
+        }
     }
 
     const currentGardenId = sessionStorage.getItem('currentGardenId');
