@@ -331,6 +331,28 @@ document.addEventListener('DOMContentLoaded', async () => {
          closeDetailsBtn.onclick = window.closeEventDetails; // Use global function
      }
 
+    // Add WhatsApp reminder button logic
+    const sendReminderBtn = document.getElementById('sendReminderBtn');
+    if (sendReminderBtn) {
+        sendReminderBtn.onclick = function() {
+            // Compose message
+            let msg = 'שלום! תזכורת: אירוע בגן';
+            msg += '\nסוג אירוע: ' + eventType;
+            if (childName && childName !== 'לא רלוונטי') {
+                msg += '\nשם הילד: ' + childName;
+            }
+            msg += '\nתאריך: ' + formatDate(new Date(event.date));
+            msg += '\nמיקום: ' + event.location;
+            if (event.notes) {
+                msg += '\nהערות: ' + event.notes;
+            }
+            // Add link to event page
+            const eventUrl = window.location.origin + window.location.pathname + '#event-' + event.id;
+            msg += '\nלפרטים נוספים: ' + eventUrl;
+            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+        };
+    }
+
 });
 
 // Global functions for managing events and modals
