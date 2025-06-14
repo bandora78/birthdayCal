@@ -334,20 +334,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add WhatsApp reminder button logic
     const sendReminderBtn = document.getElementById('sendReminderBtn');
     if (sendReminderBtn) {
+        // הכנה מראש של כל הערכים להודעת הוואטסאפ
+        const reminderEventType = event.type;
+        const reminderChildName = event.childName;
+        const reminderDate = formatDate(new Date(event.date));
+        const reminderLocation = event.location;
+        const reminderNotes = event.notes || '';
+        const eventUrl = window.location.origin + window.location.pathname + '#event-' + event.id;
+
         sendReminderBtn.onclick = function() {
-            // Compose message
             let msg = 'שלום! תזכורת: אירוע בגן';
-            msg += '\nסוג אירוע: ' + eventType;
-            if (childName && childName !== 'לא רלוונטי') {
-                msg += '\nשם הילד: ' + childName;
+            msg += '\nסוג אירוע: ' + reminderEventType;
+            if (reminderChildName && reminderChildName !== 'לא רלוונטי') {
+                msg += '\nשם הילד: ' + reminderChildName;
             }
-            msg += '\nתאריך: ' + formatDate(new Date(event.date));
-            msg += '\nמיקום: ' + event.location;
-            if (event.notes) {
-                msg += '\nהערות: ' + event.notes;
+            msg += '\nתאריך: ' + reminderDate;
+            msg += '\nמיקום: ' + reminderLocation;
+            if (reminderNotes) {
+                msg += '\nהערות: ' + reminderNotes;
             }
-            // Add link to event page
-            const eventUrl = window.location.origin + window.location.pathname + '#event-' + event.id;
             msg += '\nלפרטים נוספים: ' + eventUrl;
             window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
         };
