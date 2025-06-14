@@ -76,8 +76,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Close event form modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target === eventFormModal) {
+    window.onclick = function(e) {
+        if (e.target === eventFormModal) {
             window.closeEventModal(); // Use global function
         }
     }
@@ -502,6 +502,7 @@ window.deleteEvent = async function(eventId) {
 
 // Keep showEventDetails globally accessible as it's called from renderCalendar
 window.showEventDetails = async function(event) {
+    if (!event) return;
     const eventDetailsElement = document.getElementById('eventDetails');
     const eventTitleElement = document.getElementById('eventTitle');
     const eventDateElement = document.getElementById('eventDate');
