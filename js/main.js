@@ -49,6 +49,80 @@ window.startNewGardenRegistration = function() {
     window.location.href = 'register.html';
 };
 
+// --- ניהול גנים מרובים ב-localStorage --- //
+function getSavedGardens() {
+    return JSON.parse(localStorage.getItem('savedGardens') || '[]');
+}
+function saveGarden(garden) {
+    const gardens = getSavedGardens();
+    if (!gardens.find(g => g.id === garden.id)) {
+        gardens.push(garden);
+        localStorage.setItem('savedGardens', JSON.stringify(gardens));
+    }
+}
+function removeGarden(gardenId) {
+    let gardens = getSavedGardens();
+    gardens = gardens.filter(g => g.id !== gardenId);
+    localStorage.setItem('savedGardens', JSON.stringify(gardens));
+}
+function setActiveGarden(gardenId) {
+    sessionStorage.setItem('currentGardenId', gardenId);
+    window.location.reload();
+}
+
+// --- מסך בחירת גן --- //
+function showGardenSelection(gardens) {
+    // צור מודל בסיסי
+    let modal = document.getElementById('gardenSelectModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'gardenSelectModal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.5)';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = '9999';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `<div style="background:#fff;padding:2em;border-radius:10px;min-width:300px;text-align:right;max-width:90vw;">
+        <h2>בחר גן</h2>
+        <ul style='list-style:none;padding:0;'>
+            ${gardens.map(g => `
+                <li style='margin-bottom:1em;'>
+                    <b>${g.name}</b><br><span style='font-size:0.9em;color:#888;'>ID: ${g.id}</span>
+                    <button style='margin-right:1em;' onclick='setActiveGarden("${g.id}")'>היכנס</button>
+                    <button style='color:red;' onclick='removeGardenAndRefresh("${g.id}")'>הסר</button>
+                </li>`).join('')}
+        </ul>
+        <button onclick='clearAllGardens()' style='margin-top:1em;'>נקה הכל</button>
+    </div>`;
+    window.setActiveGarden = setActiveGarden;
+    window.removeGardenAndRefresh = function(gardenId) {
+        removeGarden(gardenId);
+        modal.remove();
+        const gardens = getSavedGardens();
+        if (gardens.length === 1) {
+            setActiveGarden(gardens[0].id);
+        } else if (gardens.length > 1) {
+            showGardenSelection(gardens);
+        } else {
+            sessionStorage.removeItem('currentGardenId');
+            window.location.reload();
+        }
+    };
+    window.clearAllGardens = function() {
+        localStorage.removeItem('savedGardens');
+        sessionStorage.removeItem('currentGardenId');
+        modal.remove();
+        window.location.reload();
+    };
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('main.js DOMContentLoaded fired.');
 
@@ -180,6 +254,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert('מזהה הגן לא נמצא במערכת. אנא בדוק את המזהה או הירשם כגן חדש.');
             }
         });
+    }
+
+    // ניהול גנים מרובים
+    const urlParams = new URLSearchParams(window.location.search);
+    const gardenIdFromUrl = urlParams.get('gardenId');
+    let savedGardens = getSavedGardens();
+    if (gardenIdFromUrl) {
+        // אם נכנסו עם gardenId ב-URL, נבדוק אם קיים ואם לא נוסיף
+        // נביא את שם הגן מה-DB
+        const { data: garden, error } = await supabase
+            .from('kindergartens')
+            .select('id, name')
+            .eq('id', gardenIdFromUrl)
+            .single();
+        if (!error && garden) {
+            saveGarden({ id: garden.id, name: garden.name });
+            setActiveGarden(garden.id);
+            return;
+        }
+    }
+    savedGardens = getSavedGardens();
+    if (savedGardens.length > 1) {
+        showGardenSelection(savedGardens);
+        return;
+    } else if (savedGardens.length === 1) {
+        if (sessionStorage.getItem('currentGardenId') !== savedGardens[0].id) {
+            setActiveGarden(savedGardens[0].id);
+            return;
+        }
+        // אחרת, כבר מחובר - לא לעשות כלום
     }
 });
 
